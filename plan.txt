@@ -1,0 +1,69 @@
+實現記名RFID電子支付儲值卡
+
+五項標準:
+    Linkit (硬體感測器端)
+    GUI (控制Linkit)
+    MySQL DB
+    API
+    WEB 顯示 (Node-RED)
+
+===============================================================
+[=====進度=====]:
+[ ] Linkit
+[ ] GUI
+[ ] MySQL DB
+[ ] API
+[ ] Web
+===============================================================
+
+# Linkit:
+    連接RFID晶片，再看要不要用LED燈來表示狀態。
+    不同狀態下的任務如下
+        1.註冊卡片: 寫入雜湊後的註冊ID到sector[1].block[1](密文剛好16bytes，剛好是一個block的大小)。
+        2.卡片儲值: 讀取sector[1].block[1]並傳送給GUI。
+        3.卡片扣款: 讀取sector[1].block[1]並傳送給GUI。
+        4.註銷卡片: 不用。
+
+# GUI:
+    用Serial來收送傳輸資料，預計實現在RFID的功能有
+        1.註冊卡片。
+        2.卡片儲值。
+        3.卡片扣款。
+        4.註銷卡片。
+    GUI的功能有
+        1.切換RFID的模式 (註冊, 儲值, 扣款)。
+        2.註冊: 對卡片寫入註冊訊息用於驗證，再將該卡片資料新增至資料庫。
+        3.儲值: 驗證卡片訊息正確無誤，輸入儲值金額，對資料庫更新交易紀錄和卡片餘額。
+        4.扣款: 驗證卡片訊息正確無誤，輸入扣款金額，對資料庫更新交易紀錄和卡片餘額。
+        5.註銷: 將資料庫中的驗證資訊抹除。
+
+# MySQL DB:
+    建立資料表:
+        [Card] {
+            rid        VARCHAR(32)   NOT NULL,  //
+            user_info  VARCHAR(16)   NOT NULL,  // 記名資訊，6位出生年月日+身分證字號
+            hash_key   VARCHAR(32)   NOT NULL,  // 用於Hash的key
+            balance    INTEGER       NOT NULL,  // 卡片餘額，範圍是[0, 10000]
+            enable     INTEGER       NOT NULL,  // 表示卡片是否啟用，設1為啟用，設0為禁用
+            PRIMARY KEY (rid)
+        }
+
+        [TransactionRecord] {
+            rid                        VARCHAR(32)  NOT NULL,  // 參照Card.rid
+            transaction_date           DATETIME     NOT NULL,  // 該交易的日期時間(時戳)
+            value                      INTEGER      NOT NULL,  // 交易金額
+            flow                       CHAR(1)      NOT NULL,  // 金額流向，以'+'表示儲值，以'-'表示扣款
+            balance_after_transaction  INTEGER      NOT NULL,  // 該交易完成後的餘額
+            PRIMARY KEY (rid, transaction_date),
+            FOREIGN KEY (rid) REFERENCES Card(rid)  ON DELETE CASCADE  ON UPDATE CASCADE
+        }
+
+# API:
+    以fastapi寫CRUD路由，作為資料庫的存取介面。
+
+# Web:
+    以Node-RED對API發請求來取得資料並顯示成圖表。
+    1. List cards
+    2. List transaction record of card
+    3. ?
+
