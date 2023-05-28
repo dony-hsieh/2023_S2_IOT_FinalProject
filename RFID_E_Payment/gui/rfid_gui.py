@@ -1,14 +1,14 @@
 from PySide2.QtWidgets import QApplication, QMainWindow
-from PySide2.QtCore import Qt, QRegExp
-from PySide2.QtGui import QRegExpValidator, QIntValidator
+from PySide2.QtCore import Qt
+from PySide2.QtGui import QIntValidator
 
 from enum import Enum
 from datetime import datetime
 import sys
 
 import mainwindow_ui
-from api.database import database
-from definitions import DATETIME_FORMAT
+from RFID_E_Payment.api.database import database
+from RFID_E_Payment.definitions import DATETIME_FORMAT
 
 
 class RFIDModes(Enum):

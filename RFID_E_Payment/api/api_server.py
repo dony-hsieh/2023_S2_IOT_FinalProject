@@ -2,7 +2,7 @@ from fastapi import FastAPI, Body, Request, Response
 import uvicorn
 
 from database import database
-from definitions import API_HOST, API_PORT
+from RFID_E_Payment.definitions import API_HOST, API_PORT
 
 app = FastAPI()
 

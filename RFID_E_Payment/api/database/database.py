@@ -3,7 +3,7 @@ from datetime import datetime
 from hashlib import blake2b
 from random import choice
 
-from definitions import MIN_BALANCE, MAX_BALANCE, DATETIME_FORMAT, HASH_COMPONENTS
+from RFID_E_Payment.definitions import MIN_BALANCE, MAX_BALANCE, DATETIME_FORMAT, HASH_COMPONENTS
 
 
 def generate_blake2_hash(plain_text: str, hkey_length: int = 32, hashed_bytesize: int = 16) -> tuple:
