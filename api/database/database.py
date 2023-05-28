@@ -71,6 +71,11 @@ class DatabaseInterface:
         ]
         return ret
 
+    def find_card_balance(self, rid: str) -> list[int]:
+        statement = "SELECT `balance` FROM `Card` WHERE `rid`=%s;"
+        ret = [row[0] for row in self.db.execute_R(statement, (rid,))]
+        return ret
+
     def add_card(self, rid: str, user_info: str, hash_key: str, balance: int, enable: bool):
         statement = """
             INSERT INTO `Card` (`rid`, `user_info`, `hash_key`, `balance`, `enable`)
@@ -151,7 +156,7 @@ class DatabaseInterface:
 if __name__ == "__main__":
     db = DatabaseInterface()
 
-    # info = "910101" + "L123456789"
+    # info = "20020101" + "L123456789"
     # hkey, rid = generate_blake2_hash(info)
     # db.add_card(rid, info, hkey, 0, True)
 

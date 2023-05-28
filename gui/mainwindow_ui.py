@@ -47,6 +47,8 @@ class Ui_MainWindow(object):
         self.curModeLineEdit.setObjectName(u"curModeLineEdit")
         font1 = QFont()
         font1.setPointSize(18)
+        font1.setBold(True)
+        font1.setWeight(75)
         self.curModeLineEdit.setFont(font1)
         self.curModeLineEdit.setReadOnly(True)
 
@@ -125,6 +127,8 @@ class Ui_MainWindow(object):
         self.personIdLineEdit.setObjectName(u"personIdLineEdit")
         font4 = QFont()
         font4.setPointSize(10)
+        font4.setBold(False)
+        font4.setWeight(50)
         self.personIdLineEdit.setFont(font4)
 
         self.horizontalLayout_5.addWidget(self.personIdLineEdit)
@@ -211,6 +215,27 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addLayout(self.horizontalLayout_7)
 
+        self.horizontalLayout_15 = QHBoxLayout()
+        self.horizontalLayout_15.setObjectName(u"horizontalLayout_15")
+        self.label_9 = QLabel(self.groupBox)
+        self.label_9.setObjectName(u"label_9")
+        self.label_9.setFont(font3)
+        self.label_9.setAlignment(Qt.AlignCenter)
+
+        self.horizontalLayout_15.addWidget(self.label_9)
+
+        self.cardEnableStateToCancelLineEdit = QLineEdit(self.groupBox)
+        self.cardEnableStateToCancelLineEdit.setObjectName(u"cardEnableStateToCancelLineEdit")
+        self.cardEnableStateToCancelLineEdit.setFont(font3)
+        self.cardEnableStateToCancelLineEdit.setReadOnly(True)
+
+        self.horizontalLayout_15.addWidget(self.cardEnableStateToCancelLineEdit)
+
+        self.horizontalLayout_15.setStretch(0, 1)
+        self.horizontalLayout_15.setStretch(1, 3)
+
+        self.verticalLayout_7.addLayout(self.horizontalLayout_15)
+
         self.horizontalLayout_8 = QHBoxLayout()
         self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
         self.cancelCardBtn = QPushButton(self.groupBox)
@@ -222,8 +247,9 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_7.addLayout(self.horizontalLayout_8)
 
-        self.verticalLayout_7.setStretch(0, 4)
-        self.verticalLayout_7.setStretch(1, 1)
+        self.verticalLayout_7.setStretch(0, 2)
+        self.verticalLayout_7.setStretch(1, 2)
+        self.verticalLayout_7.setStretch(2, 1)
 
         self.horizontalLayout_3.addLayout(self.verticalLayout_7)
 
@@ -249,7 +275,7 @@ class Ui_MainWindow(object):
 
         self.transactionModeLineEdit = QLineEdit(self.groupBox)
         self.transactionModeLineEdit.setObjectName(u"transactionModeLineEdit")
-        self.transactionModeLineEdit.setFont(font4)
+        self.transactionModeLineEdit.setFont(font3)
         self.transactionModeLineEdit.setReadOnly(True)
 
         self.horizontalLayout_10.addWidget(self.transactionModeLineEdit)
@@ -270,7 +296,7 @@ class Ui_MainWindow(object):
 
         self.readCardToTransactLineEdit = QLineEdit(self.groupBox)
         self.readCardToTransactLineEdit.setObjectName(u"readCardToTransactLineEdit")
-        self.readCardToTransactLineEdit.setFont(font4)
+        self.readCardToTransactLineEdit.setFont(font3)
         self.readCardToTransactLineEdit.setReadOnly(True)
 
         self.horizontalLayout_12.addWidget(self.readCardToTransactLineEdit)
@@ -279,6 +305,27 @@ class Ui_MainWindow(object):
         self.horizontalLayout_12.setStretch(1, 3)
 
         self.verticalLayout_8.addLayout(self.horizontalLayout_12)
+
+        self.horizontalLayout_16 = QHBoxLayout()
+        self.horizontalLayout_16.setObjectName(u"horizontalLayout_16")
+        self.label_10 = QLabel(self.groupBox)
+        self.label_10.setObjectName(u"label_10")
+        self.label_10.setFont(font3)
+        self.label_10.setAlignment(Qt.AlignCenter)
+
+        self.horizontalLayout_16.addWidget(self.label_10)
+
+        self.cardEnableStateToTransacLineEdit = QLineEdit(self.groupBox)
+        self.cardEnableStateToTransacLineEdit.setObjectName(u"cardEnableStateToTransacLineEdit")
+        self.cardEnableStateToTransacLineEdit.setFont(font3)
+        self.cardEnableStateToTransacLineEdit.setReadOnly(True)
+
+        self.horizontalLayout_16.addWidget(self.cardEnableStateToTransacLineEdit)
+
+        self.horizontalLayout_16.setStretch(0, 1)
+        self.horizontalLayout_16.setStretch(1, 3)
+
+        self.verticalLayout_8.addLayout(self.horizontalLayout_16)
 
         self.horizontalLayout_11 = QHBoxLayout()
         self.horizontalLayout_11.setObjectName(u"horizontalLayout_11")
@@ -289,29 +336,12 @@ class Ui_MainWindow(object):
 
         self.horizontalLayout_11.addWidget(self.label_7)
 
-        self.horizontalLayout_13 = QHBoxLayout()
-        self.horizontalLayout_13.setObjectName(u"horizontalLayout_13")
         self.cardBalanceLineEdit = QLineEdit(self.groupBox)
         self.cardBalanceLineEdit.setObjectName(u"cardBalanceLineEdit")
-        self.cardBalanceLineEdit.setFont(font4)
+        self.cardBalanceLineEdit.setFont(font3)
         self.cardBalanceLineEdit.setReadOnly(True)
 
-        self.horizontalLayout_13.addWidget(self.cardBalanceLineEdit)
-
-        self.queryCardBalanceBtn = QPushButton(self.groupBox)
-        self.queryCardBalanceBtn.setObjectName(u"queryCardBalanceBtn")
-        font6 = QFont()
-        font6.setPointSize(9)
-        font6.setBold(True)
-        font6.setWeight(75)
-        self.queryCardBalanceBtn.setFont(font6)
-
-        self.horizontalLayout_13.addWidget(self.queryCardBalanceBtn)
-
-        self.horizontalLayout_13.setStretch(0, 3)
-        self.horizontalLayout_13.setStretch(1, 1)
-
-        self.horizontalLayout_11.addLayout(self.horizontalLayout_13)
+        self.horizontalLayout_11.addWidget(self.cardBalanceLineEdit)
 
         self.horizontalLayout_11.setStretch(0, 1)
         self.horizontalLayout_11.setStretch(1, 3)
@@ -329,7 +359,9 @@ class Ui_MainWindow(object):
 
         self.setTransactionValueLineEdit = QLineEdit(self.groupBox)
         self.setTransactionValueLineEdit.setObjectName(u"setTransactionValueLineEdit")
-        self.setTransactionValueLineEdit.setFont(font4)
+        font6 = QFont()
+        font6.setPointSize(10)
+        self.setTransactionValueLineEdit.setFont(font6)
 
         self.horizontalLayout_9.addWidget(self.setTransactionValueLineEdit)
 
@@ -342,6 +374,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_8.setStretch(1, 1)
         self.verticalLayout_8.setStretch(2, 1)
         self.verticalLayout_8.setStretch(3, 1)
+        self.verticalLayout_8.setStretch(4, 1)
 
         self.verticalLayout_5.addLayout(self.verticalLayout_8)
 
@@ -393,8 +426,8 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_2.addWidget(self.groupBox_2)
 
-        self.verticalLayout_2.setStretch(0, 1)
-        self.verticalLayout_2.setStretch(1, 1)
+        self.verticalLayout_2.setStretch(0, 3)
+        self.verticalLayout_2.setStretch(1, 2)
 
         self.verticalLayout.addLayout(self.verticalLayout_2)
 
@@ -415,15 +448,16 @@ class Ui_MainWindow(object):
         self.refillModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u5132\u503c", None))
         self.debitModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u6263\u6b3e", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u8eab\u5206\u8b49\u5b57\u865f(10\u78bc):", None))
-        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u51fa\u751f\u5e74\u6708\u65e5(6\u78bc):", None))
+        self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u51fa\u751f\u5e74\u6708\u65e5(8\u78bc):", None))
         self.clearRegInfoBtn.setText(QCoreApplication.translate("MainWindow", u"\u6e05\u9664\u6b04\u4f4d", None))
         self.regCardBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a18\u540d\u8a3b\u518a", None))
         self.label_4.setText(QCoreApplication.translate("MainWindow", u"\u8b80\u53d6\u5361\u7247\u8cc7\u8a0a:", None))
+        self.label_9.setText(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u72c0\u614b:", None))
         self.cancelCardBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a3b\u92b7", None))
         self.label_5.setText(QCoreApplication.translate("MainWindow", u"\u4ea4\u6613\u6a21\u5f0f:", None))
         self.label_6.setText(QCoreApplication.translate("MainWindow", u"\u8b80\u53d6\u5361\u7247\u8cc7\u8a0a:", None))
+        self.label_10.setText(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u72c0\u614b:", None))
         self.label_7.setText(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u9918\u984d:", None))
-        self.queryCardBalanceBtn.setText(QCoreApplication.translate("MainWindow", u"\u67e5\u8a62\u9918\u984d", None))
         self.label_8.setText(QCoreApplication.translate("MainWindow", u"\u8a2d\u5b9a\u4ea4\u6613\u91d1\u984d:", None))
         self.clearTransactionValueBtn.setText(QCoreApplication.translate("MainWindow", u"\u6e05\u9664\u4ea4\u6613\u91d1\u984d", None))
         self.transactionBtn.setText(QCoreApplication.translate("MainWindow", u"\u4ea4\u6613", None))

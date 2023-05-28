@@ -5,7 +5,7 @@ DROP TABLE `Card`;
 
 CREATE TABLE `Card` (
     `rid`        VARCHAR(32)   NOT NULL,
-    `user_info`  VARCHAR(16)   NOT NULL,
+    `user_info`  VARCHAR(18)   NOT NULL,
     `hash_key`   VARCHAR(32)   NOT NULL,
     `balance`    INTEGER       NOT NULL,
     `enable`     INTEGER       NOT NULL,
