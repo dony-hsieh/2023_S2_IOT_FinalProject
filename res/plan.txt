@@ -23,6 +23,9 @@
         2.卡片儲值: 讀取sector[1].block[1]並傳送給GUI。
         3.卡片扣款: 讀取sector[1].block[1]並傳送給GUI。
         4.註銷卡片: 讀取sector[1].block[1]並傳送給GUI。
+    通訊格式(17bytes):
+        1.模式指令: 用1byte表示 => {0x00: Standby, 0x01: Register, 0x02: Cancel, 0x03: Transaction}，剩餘為0
+        2.RID: 用17bytes表示 => 從最左byte開始，1byte值為0x0F表示為傳送rid，剩餘16bytes是rid的值。
 
 # GUI:
     用Serial來收送傳輸資料，預計實現在RFID的功能有
