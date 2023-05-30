@@ -17,6 +17,18 @@
 # define WM_CNL     0x02  // Work mode (Cancelation)
 # define WM_TRN     0x03  // Work mode (Transaction)
 # define RID_CARRY  0x0F  // RID data carried
+# define DEBUG_MSG  0x10  // Likit debug message
+
+/**
+ * PIN map (left to right):
+ *   [RC522]    [Linkit]
+ *     SDA        P10
+ *     SCK        P13
+ *     MOSI       P11
+ *     MISO       P12
+ *     GND        GND
+ *     3v3        3V3
+ */
 
 /**
  * Communication data format (including command block and data block):
@@ -29,6 +41,7 @@
  *   0x02 ---- Cancelation mode
  *   0x03 ---- Transaction mode
  *   0x0F ---- RID data carried
+ *   0x10 ---- Likit debug message
  */
  
 
@@ -38,10 +51,15 @@
 MFRC522 mfrc522(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key mifare_key;
 
-byte SERIAL_RID_FLAG = 0x00;
-byte RFID_RID_FLAG_MASK = 0x00;
-byte WORK_MODE = WM_TRN;  // Default is standby mode
+// Flags
+bool RFID_RID_READY_FLAG = false;
+bool NEW_CARD_READY_FLAG = false;
 
+// State
+byte WORK_MODE = WM_STD;  // Default is standby mode
+MFRC522::StatusCode mfrc522_status;
+
+// Buffers
 byte data_buffer[DATA_BUFFER_SIZE];
 byte rid_from_serial[RID_SIZE] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -86,8 +104,8 @@ void setup() {
 
 void loop() {
   // clear all flags
-    SERIAL_RID_FLAG = 0x00;
-    RFID_RID_FLAG_MASK = 0x00;
+    RFID_RID_READY_FLAG = false;
+    NEW_CARD_READY_FLAG = false;
   
     // Read serial
     if (Serial.available()) {
@@ -97,31 +115,32 @@ void loop() {
         if (data_buffer[0] == WM_STD || data_buffer[0] == WM_REG || data_buffer[0] == WM_CNL || data_buffer[0] == WM_TRN) {
             // Switch WORK_MODE
             WORK_MODE = data_buffer[0];
-        } else if (data_buffer[0] == 0x0F) {
+        } else if (data_buffer[0] == RID_CARRY) {
             // Store rid
             for (size_t i = 1; i < 1 + RID_SIZE; i++) {
                 rid_from_serial[i-1] = data_buffer[i];
             }
-
-            // Set flag
-            SERIAL_RID_FLAG = 0x01;
         }
     }
   
-    // RFID read tag
+    // Test RFID ready
     if (mfrc522.PICC_IsNewCardPresent() && mfrc522.PICC_ReadCardSerial()) {
+        NEW_CARD_READY_FLAG = true;
+    }
+
+    // Read rid of RFID
+    if (NEW_CARD_READY_FLAG) {
         // Authenticate using key A
-        MFRC522::StatusCode status;
-        status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
+        mfrc522_status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
             MFRC522::PICC_CMD_MF_AUTH_KEY_A, RFID_TRAILERBLOCK_ADDR, &mifare_key, &(mfrc522.uid)
         );
-        if (status == MFRC522::STATUS_OK) {
+        if (mfrc522_status == MFRC522::STATUS_OK) {
             // Authenticate success
             byte buf_size = sizeof(rid_from_rfid);
-            status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(RFID_BLOCK_ADDR, rid_from_rfid, &buf_size);
-            if (status == MFRC522::STATUS_OK) {
-                // Set flasg
-                RFID_RID_FLAG_MASK = 0x01;
+            mfrc522_status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(RFID_BLOCK_ADDR, rid_from_rfid, &buf_size);
+            if (mfrc522_status == MFRC522::STATUS_OK) {
+                // Set flag
+                RFID_RID_READY_FLAG = true;
             }
         }
     }
@@ -129,21 +148,30 @@ void loop() {
     // Works of WORK_MODE
     switch (WORK_MODE) {
         case WM_REG:
-            if (SERIAL_RID_FLAG == 0x01) {
-                // Write rid_from_serial to RFID
-                // TODO???
+            // Write rid_from_serial to RFID
+            if (NEW_CARD_READY_FLAG) {
+                // Authenticate using key A
+                mfrc522_status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
+                    MFRC522::PICC_CMD_MF_AUTH_KEY_A, RFID_TRAILERBLOCK_ADDR, &mifare_key, &(mfrc522.uid)
+                );
+                if (mfrc522_status == MFRC522::STATUS_OK) {
+                    mfrc522_status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(RFID_BLOCK_ADDR, rid_from_serial, RID_SIZE);
+                    // if (mfrc522_status != MFRC522::STATUS_OK) {
+                    //     write failed
+                    // }
+                }
             }
             break;
             
         case WM_CNL:
         case WM_TRN:
-            if (RFID_RID_FLAG_MASK == 0x01) {
+            if (RFID_RID_READY_FLAG) {
                 // Send rid_from_rfid to serial
                 Serial.write(RID_CARRY);
                 Serial.write(rid_from_rfid, RID_SIZE);
                 Serial.write('\n'); 
-                //Serial.print(RID_CARRY);
-                //dump_byte_array(rid_from_rfid, RID_SIZE);
+//                Serial.print(RID_CARRY);
+//                dump_byte_array(rid_from_rfid, RID_SIZE);
             }
             break;
             

@@ -156,9 +156,9 @@ class DatabaseInterface:
 if __name__ == "__main__":
     db = DatabaseInterface()
 
-    # info = "20020101" + "L123456789"
-    # hkey, rid = generate_blake2_hash(info)
-    # db.add_card(rid, info, hkey, 0, True)
+    info = "20020101" + "L123456789" + "0912345678"
+    hkey, rid = generate_blake2_hash(info)
+    db.add_card(rid, info, hkey, 0, True)
 
     # ret = db.update_card_transact("10745c07b9d3d99f741077030768f927", 500)
     # print(ret)
