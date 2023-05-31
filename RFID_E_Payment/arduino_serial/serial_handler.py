@@ -1,8 +1,12 @@
 from PySide2.QtCore import QThread
 from typing import Callable
 import serial
+import threading
+import time
 
-from RFID_E_Payment.definitions import SERIAL_PORT, SERIAL_BAUD
+from RFID_E_Payment.definitions import SERIAL_PORT, SERIAL_BAUD, SERIAL_COMMUNICATION_DATA_SIZE
+
+# TODO
 
 
 class TaskThread(QThread):
@@ -27,17 +31,43 @@ class TaskThread(QThread):
 
 class SerialHandler:
     def __init__(self):
-        self.serial = None
-        self.open_serial()
+        self.serial = serial.Serial()
+        self.serial.port = SERIAL_PORT
+        self.serial.baudrate = SERIAL_BAUD
 
-    def open_serial(self) -> bool:
+        self.reading_thread_run = True
+        self.writing_thread_run = True
+
+        self.reading_task = threading.Thread(target=self.reading_from_serial, daemon=True)
+
+        self.open_serial()
+        self.reading_task.start()
+
+    def open_serial(self):
         try:
-            self.serial = serial.Serial(port=SERIAL_PORT, baudrate=SERIAL_BAUD, timeout=5)
-            return True
+            self.serial.open()
         except serial.SerialException as e:
-            print(e.args)
-            return False
+            print(e)
+
+    def stop_all_threads(self):
+        self.reading_thread_run = False
+        self.writing_thread_run = False
+
+    def start_all_threads(self):
+        self.reading_task.start()
+
+    def reading_from_serial(self):
+        while self.reading_thread_run:
+            if self.serial.in_waiting:
+                read_data = self.serial.read(SERIAL_COMMUNICATION_DATA_SIZE)
+                print(len(read_data), read_data.hex())
+
+    def writing_to_serial(self):
+        while self.writing_thread_run:
+            pass
 
 
 if __name__ == "__main__":
     serialHandler = SerialHandler()
+    time.sleep(5)
+    serialHandler.stop_all_threads()

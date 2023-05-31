@@ -9,7 +9,9 @@ CREATE TABLE `Card` (
     `hash_key`   VARCHAR(32)   NOT NULL,
     `balance`    INTEGER       NOT NULL,
     `enable`     INTEGER       NOT NULL,
-    PRIMARY KEY (`rid`)
+    `reg_date`   DATETIME      NOT NULL,
+    PRIMARY KEY (`rid`),
+    UNIQUE (`user_info`)
 );
 
 CREATE TABLE `TransactionRecord` (

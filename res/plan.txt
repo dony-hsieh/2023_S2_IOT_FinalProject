@@ -43,12 +43,14 @@
 # MySQL DB:
     建立資料表:
         [Card] {
-            rid        VARCHAR(32)   NOT NULL,  //
-            user_info  VARCHAR(28)   NOT NULL,  // 記名資訊，8位出生年(西元)月日+10位身分證字號+10位手機號碼
-            hash_key   VARCHAR(32)   NOT NULL,  // 用於Hash的key
-            balance    INTEGER       NOT NULL,  // 卡片餘額，範圍是[0, 10000]
-            enable     INTEGER       NOT NULL,  // 表示卡片是否啟用，設1為啟用，設0為禁用
-            PRIMARY KEY (rid)
+            rid          VARCHAR(32)   NOT NULL,  //
+            user_info    VARCHAR(28)   NOT NULL,  // 記名資訊，8位出生年(西元)月日+10位身分證字號+10位手機號碼
+            hash_key     VARCHAR(32)   NOT NULL,  // 用於Hash的key
+            balance      INTEGER       NOT NULL,  // 卡片餘額，範圍是[0, 10000]
+            enable       INTEGER       NOT NULL,  // 表示卡片是否啟用，設1為啟用，設0為禁用
+            reg_date   DATETIME      NOT NULL,  // 卡片註冊時間
+            PRIMARY KEY (rid),
+            UNIQUE (`user_info`)                  // 因為是記名卡片，需要user_info不重複
         }
 
         [TransactionRecord] {

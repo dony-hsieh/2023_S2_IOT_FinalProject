@@ -39,16 +39,18 @@ class BasicDatabase:
             if fetch_counts > 0:
                 return cursor.fetchmany(fetch_counts)
         except MySQLdb.Error as e:
-            print(e.args)
+            print(e)
         return tuple()
 
-    def execute_CUD(self, statement: str, args: tuple = ()):
+    def execute_CUD(self, statement: str, args: tuple = ()) -> bool:
         try:
             cursor = self.conn.cursor()
             cursor.execute(statement, args)
             self.conn.commit()
+            return True
         except MySQLdb.Error as e:
-            print(e.args)
+            print(e)
+            return False
 
 
 class DatabaseInterface:
@@ -56,17 +58,19 @@ class DatabaseInterface:
         self.db = BasicDatabase()
 
     def find_all_cards(self) -> list[dict]:
-        statement = "SELECT `rid`, `user_info`, `hash_key`, `balance`, `enable` FROM `Card`;"
+        statement = "SELECT `rid`, `user_info`, `hash_key`, `balance`, `enable`, `reg_date` FROM `Card`;"
         ret = [
-            {"rid": row[0], "user_info": row[1], "hash_key": row[2], "balance": row[3], "enable": row[4]}
+            {"rid": row[0], "user_info": row[1], "hash_key": row[2],
+             "balance": row[3], "enable": row[4], "reg_date": datetime.strftime(row[5], DATETIME_FORMAT)}
             for row in self.db.execute_R(statement)
         ]
         return ret
 
     def find_card(self, rid: str) -> list[dict]:
-        statement = "SELECT `rid`, `user_info`, `hash_key`, `balance`, `enable` FROM `Card` WHERE `rid`=%s;"
+        statement = "SELECT `rid`, `user_info`, `hash_key`, `balance`, `enable`, `reg_date` FROM `Card` WHERE `rid`=%s;"
         ret = [
-            {"rid": row[0], "user_info": row[1], "hash_key": row[2], "balance": row[3], "enable": row[4]}
+            {"rid": row[0], "user_info": row[1], "hash_key": row[2],
+             "balance": row[3], "enable": row[4], "reg_date": datetime.strftime(row[5], DATETIME_FORMAT)}
             for row in self.db.execute_R(statement, (rid,))
         ]
         return ret
@@ -76,18 +80,19 @@ class DatabaseInterface:
         ret = [row[0] for row in self.db.execute_R(statement, (rid,))]
         return ret
 
-    def add_card(self, rid: str, user_info: str, hash_key: str, balance: int, enable: bool):
+    def add_card(self, rid: str, user_info: str, hash_key: str, balance: int, enable: bool, reg_date: datetime) -> bool:
         statement = """
-            INSERT INTO `Card` (`rid`, `user_info`, `hash_key`, `balance`, `enable`)
-            VALUES (%s, %s, %s, %s, %s);
+            INSERT INTO `Card` (`rid`, `user_info`, `hash_key`, `balance`, `enable`, `reg_date`)
+            VALUES (%s, %s, %s, %s, %s, %s);
         """.strip()
         int_enable = 1 if enable else 0
-        args = (rid, user_info, hash_key, balance, int_enable)
-        self.db.execute_CUD(statement, args)
+        reg_date_str = datetime.strftime(reg_date, DATETIME_FORMAT)
+        args = (rid, user_info, hash_key, balance, int_enable, reg_date_str)
+        return self.db.execute_CUD(statement, args)
 
-    def delete_card(self, rid: str):
+    def delete_card(self, rid: str) -> bool:
         statement = "DELETE FROM `Card` WHERE `rid`=%s;"
-        self.db.execute_CUD(statement, (rid,))
+        return self.db.execute_CUD(statement, (rid,))
 
     def find_all_transaction_records(self, rid: str) -> list[dict]:
         statement = """
@@ -108,7 +113,7 @@ class DatabaseInterface:
         ]
         return ret
 
-    def update_card_set_enable(self, rid: str, enable: bool):
+    def update_card_set_enable(self, rid: str, enable: bool) -> bool:
         oper_card = self.find_card(rid)
         if not oper_card:
             return False
@@ -117,7 +122,7 @@ class DatabaseInterface:
         if oper_card["enable"] == new_enable_val:
             return
         set_enable_stat = "UPDATE `Card` SET `enable`=%s WHERE `rid`=%s;"
-        self.db.execute_CUD(set_enable_stat, (new_enable_val, rid))
+        return self.db.execute_CUD(set_enable_stat, (new_enable_val, rid))
 
     def update_card_transact(self, rid: str, value: int) -> bool:
         """
@@ -142,26 +147,28 @@ class DatabaseInterface:
 
         # update balance of card
         update_card_stat = "UPDATE `Card` SET `balance`=%s WHERE `rid`=%s AND `enable`=1;"
-        self.db.execute_CUD(update_card_stat, (temp_balance, rid))
+        update_status = self.db.execute_CUD(update_card_stat, (temp_balance, rid))
 
         # insert new transaction record
         new_transaction_stat = """
             INSERT INTO `TransactionRecord` (`rid`, `transaction_date`, `value`, `flow`, `balance_after_transaction`)
             VALUES (%s, %s, %s, %s, %s);
         """
-        self.db.execute_CUD(new_transaction_stat, (rid, transact_date, abs(value), transact_flow, temp_balance))
-        return True
+        insert_status = self.db.execute_CUD(new_transaction_stat, (rid, transact_date, abs(value), transact_flow, temp_balance))
+        return update_status and insert_status
 
 
 if __name__ == "__main__":
     db = DatabaseInterface()
 
-    info = "20020101" + "L123456789" + "0912345678"
+    info = "20020101" + "N123456789" + "0912345678"
     hkey, rid = generate_blake2_hash(info)
-    db.add_card(rid, info, hkey, 0, True)
+    ret = db.add_card(rid, info, hkey, 0, True, datetime.now())
+    print(ret)
 
-    # ret = db.update_card_transact("10745c07b9d3d99f741077030768f927", 500)
+    # ret = db.update_card_transact("c9f72ac973fe040c12920fa32f27c061", -200)
     # print(ret)
 
-    # records = db.find_all_transaction_records("10745c07b9d3d99f741077030768f927")
-    # print(records[0])
+    # records = db.find_all_transaction_records("c9f72ac973fe040c12920fa32f27c061")
+    # for rec in records:
+    #     print(rec)

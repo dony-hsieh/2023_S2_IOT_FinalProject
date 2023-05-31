@@ -519,6 +519,9 @@
                     <property name="readOnly">
                      <bool>true</bool>
                     </property>
+                    <property name="placeholderText">
+                     <string>點擊下方按鈕生成識別 ID</string>
+                    </property>
                    </widget>
                   </item>
                   <item row="4" column="1">
@@ -647,7 +650,11 @@
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
         <item>
-         <widget class="QPlainTextEdit" name="monitorTextEdit"/>
+         <widget class="QPlainTextEdit" name="monitorTextEdit">
+          <property name="readOnly">
+           <bool>true</bool>
+          </property>
+         </widget>
         </item>
        </layout>
       </item>

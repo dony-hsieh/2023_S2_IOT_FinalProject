@@ -56,7 +56,7 @@ bool RFID_RID_READY_FLAG = false;
 bool NEW_CARD_READY_FLAG = false;
 
 // State
-byte WORK_MODE = WM_STD;  // Default is standby mode
+byte WORK_MODE = WM_TRN;  // Default is standby mode
 MFRC522::StatusCode mfrc522_status;
 
 // Buffers
@@ -169,7 +169,6 @@ void loop() {
                 // Send rid_from_rfid to serial
                 Serial.write(RID_CARRY);
                 Serial.write(rid_from_rfid, RID_SIZE);
-                Serial.write('\n'); 
 //                Serial.print(RID_CARRY);
 //                dump_byte_array(rid_from_rfid, RID_SIZE);
             }
