@@ -1,73 +1,63 @@
-from PySide2.QtCore import QThread
-from typing import Callable
+from PySide2.QtWidgets import QWidget
+from PySide2.QtCore import QThread, Signal
 import serial
-import threading
 import time
 
-from RFID_E_Payment.definitions import SERIAL_PORT, SERIAL_BAUD, SERIAL_COMMUNICATION_DATA_SIZE
-
-# TODO
+from RFID_E_Payment.definitions import SERIAL_PORT, SERIAL_BAUD, SERIAL_COMMUNICATION_PACK_SIZE
 
 
-class TaskThread(QThread):
-    def __init__(self, task: Callable):
-        super(TaskThread, self).__init__()
-        self.task = task
-        self.args = ()
+class SerialThread(QThread):
+    new_data_from_serial = Signal()
 
-    def run(self):
-        self.task(*self.args)
-
-    def startTask(self, args: tuple = ()):
-        self.args = args if isinstance(args, tuple) else ()
-        self.start()
-
-    def connectSignal(self, started_slot: Callable = None, finished_slot: Callable = None):
-        if isinstance(started_slot, Callable):
-            self.started.connect(started_slot)
-        if isinstance(finished_slot, Callable):
-            self.finished.connect(finished_slot)
-
-
-class SerialHandler:
     def __init__(self):
+        super(SerialThread, self).__init__()
+
         self.serial = serial.Serial()
         self.serial.port = SERIAL_PORT
         self.serial.baudrate = SERIAL_BAUD
+        self.serial.timeout = 2
 
-        self.reading_thread_run = True
-        self.writing_thread_run = True
+        self.running = False
+        self.writing_flag = False
+        self.reading_buffer = b""
+        self.writing_buffer = b""
 
-        self.reading_task = threading.Thread(target=self.reading_from_serial, daemon=True)
-
-        self.open_serial()
-        self.reading_task.start()
-
-    def open_serial(self):
+    def open_serial(self) -> bool:
         try:
+            self.serial.close()
             self.serial.open()
+            return True
         except serial.SerialException as e:
             print(e)
+            return False
 
-    def stop_all_threads(self):
-        self.reading_thread_run = False
-        self.writing_thread_run = False
+    def run(self):
+        if not self.serial.is_open:
+            print("Serial is not open")
+            return
+        self.running = True
+        self.serial.flushInput()
+        self.serial.flushOutput()
+        while self.running:
+            try:
+                if self.writing_flag:
+                    self.writing_flag = False
+                    self.serial.write(self.writing_buffer)
+                if self.serial.in_waiting:
+                    raw_data = self.serial.read(SERIAL_COMMUNICATION_PACK_SIZE)
+                    self.reading_buffer = raw_data
+                    self.new_data_from_serial.emit()
+            except serial.SerialException as e:
+                print(e)
+                self.stop()
 
-    def start_all_threads(self):
-        self.reading_task.start()
+    def stop(self):
+        self.writing_flag = False
+        self.running = False
 
-    def reading_from_serial(self):
-        while self.reading_thread_run:
-            if self.serial.in_waiting:
-                read_data = self.serial.read(SERIAL_COMMUNICATION_DATA_SIZE)
-                print(len(read_data), read_data.hex())
+    def set_writing_data(self, data: bytes):
+        self.writing_buffer = data
+        self.writing_flag = True
 
-    def writing_to_serial(self):
-        while self.writing_thread_run:
-            pass
-
-
-if __name__ == "__main__":
-    serialHandler = SerialHandler()
-    time.sleep(5)
-    serialHandler.stop_all_threads()
+    def get_reading_data(self):
+        return self.reading_buffer

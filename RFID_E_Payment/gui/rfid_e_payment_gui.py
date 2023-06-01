@@ -1,30 +1,32 @@
 from PySide2.QtWidgets import QApplication, QMainWindow, QMessageBox
-from PySide2.QtCore import Qt
-from PySide2.QtGui import QIntValidator
+from PySide2.QtGui import QIntValidator, QCloseEvent
 
 from enum import Enum
 from datetime import datetime
 import sys
 
+from RFID_E_Payment.definitions import (
+    MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE, SERIAL_COMMUNICATION_CARRY_DATA_SIZE
+)
 from RFID_E_Payment.api.database import database
-from RFID_E_Payment.definitions import MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE
+from RFID_E_Payment.arduino_serial.serial_handler import SerialThread
 import mainwindow_ui
 
 
 class WorkMode(Enum):
-    STD = 0x00
-    REG = 0x01
-    CNL = 0x02
-    TRN = 0x03
+    STD = "00"
+    REG = "01"
+    CNL = "02"
+    TRN = "03"
 
     def mode_str(self):
-        if self.value == 0x00:
+        if self.value == "00":
             return "待機模式"
-        if self.value == 0x01:
+        if self.value == "01":
             return "註冊模式"
-        if self.value == 0x02:
+        if self.value == "02":
             return "註銷模式"
-        if self.value == 0x03:
+        if self.value == "03":
             return "交易模式"
         return "待機模式"
 
@@ -34,12 +36,17 @@ class MainApplicationWindow(QMainWindow):
         super(MainApplicationWindow, self).__init__()
         self.ui = mainwindow_ui.Ui_MainWindow()
         self.ui.setupUi(self)
-        self.setWindowState(Qt.WindowMaximized)
 
         self.db = database.DatabaseInterface()
+        self.rfid_serial_thread = SerialThread()
+
+        self.rfid_serial_thread.new_data_from_serial.connect(self.parse_serial_reading_pack)
+        self.rfid_serial_thread.open_serial()
+        self.rfid_serial_thread.start()
 
         self.ui.trnValLineEdit.setValidator(QIntValidator(MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE))
 
+        self.ui.reconnSerialBtn.clicked.connect(self.reconnect_serial)
         self.ui.stdModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.STD))
         self.ui.trnModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.TRN))
         self.ui.regModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.REG))
@@ -58,14 +65,31 @@ class MainApplicationWindow(QMainWindow):
         self.rfid_curWorkMode = WorkMode.STD
         self.set_widgets_mode()
 
+        # init the mode of rfid
+        com_pack = (
+            bytes.fromhex(self.rfid_curWorkMode.value) +
+            bytes.fromhex("00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE)
+        )
+        self.rfid_serial_thread.set_writing_data(com_pack)
+
+    def closeEvent(self, event: QCloseEvent):
+        self.rfid_serial_thread.stop()
+
     def on_mode_switch(self, mode: WorkMode):
         if self.rfid_curWorkMode != mode:
             self.rfid_curWorkMode = mode
             self.set_widgets_mode()
 
+            # send controlling command to serial
+            com_pack = (
+                bytes.fromhex(self.rfid_curWorkMode.value) +
+                bytes.fromhex("00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE)
+            )
+            self.rfid_serial_thread.set_writing_data(com_pack)
+
     def set_widgets_mode(self):
         # show mode string
-        self.ui.curModeLineEdit.setText(self.rfid_curWorkMode.mode_str())
+        self.ui.curModeLineEdit.setText("當前模式: " + self.rfid_curWorkMode.mode_str())
 
         # enable all mode controlling buttons
         self.ui.stdModeBtn.setEnabled(True)
@@ -152,7 +176,7 @@ class MainApplicationWindow(QMainWindow):
             balance_text = str(ret[0]["balance"])
         self.ui.readEnableLineEdit.setText(enable_text)
         self.ui.readBalanceLineEdit.setText(balance_text)
-        if not flag:
+        if triggered_by_click and not flag:
             QMessageBox.warning(
                 self, "查詢卡片", "查無此卡片", QMessageBox.Ok
             )
@@ -225,21 +249,41 @@ class MainApplicationWindow(QMainWindow):
         person_phone_number = self.ui.phoneNumLineEdit.text().replace(" ", "")
         if len(person_birth) != 8 or len(person_id) != 10 or len(person_phone_number) != 10:
             self.ui.generatedRidLineEdit.clear()
+            QMessageBox.critical(
+                self, "註冊程序", "註冊資料不完整", QMessageBox.Ok
+            )
             return
 
         # check generated rid
         gen_rid = self.ui.generatedRidLineEdit.text().split(":")
         if len(gen_rid) != 2:
             self.ui.generatedRidLineEdit.clear()
+            QMessageBox.critical(
+                self, "註冊程序", "生成卡片ID格式錯誤", QMessageBox.Ok
+            )
             return
         rid, hkey = gen_rid
         user_info = person_birth + person_id + person_phone_number
 
-        # send to serial
-        # TODO
+        # check if register data existed
+        existed = self.db.check_registered_card_existed(rid, user_info)
+        if existed:
+            QMessageBox.critical(
+                self, "註冊程序", "註冊資料已被使用", QMessageBox.Ok
+            )
+            return
 
-        # insert to db
-        # self.db.add_card(rid, user_info, hkey, 0, True, datetime.now())
+        # send to serial, then insert to db
+        com_pack = (
+            bytes.fromhex("0f") +
+            bytes.fromhex(rid)
+        )
+        self.rfid_serial_thread.set_writing_data(com_pack)
+        success = self.db.add_card(rid, user_info, hkey, 0, True, datetime.now())
+        if success:
+            QMessageBox.information(
+                self, "註冊程序", "已建立註冊資訊，請感應卡片來寫入ID", QMessageBox.Ok
+            )
 
     def set_card_enable(self, set_enable: bool):
         read_rid = self.ui.readRidLineEdit.text().strip()
@@ -278,6 +322,22 @@ class MainApplicationWindow(QMainWindow):
             self.ui.readRidLineEdit.clear()
             self.ui.readEnableLineEdit.clear()
             self.ui.readBalanceLineEdit.clear()
+
+    def reconnect_serial(self):
+        self.rfid_serial_thread.stop()
+        success = self.rfid_serial_thread.open_serial()
+        if success:
+            self.rfid_serial_thread.start()
+
+    def parse_serial_reading_pack(self):
+        raw_data = self.rfid_serial_thread.get_reading_data().hex()
+        cmd = raw_data[0:2]
+        carried_data = raw_data[2:]
+        if cmd == "0f":
+            self.ui.readRidLineEdit.setText(carried_data)
+            self.query_card_info()
+        elif cmd == "10":
+            print(carried_data)
 
 
 if __name__ == "__main__":

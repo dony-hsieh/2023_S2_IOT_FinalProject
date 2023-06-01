@@ -31,30 +31,27 @@ class Ui_MainWindow(object):
         self.verticalLayout_4.setObjectName(u"verticalLayout_4")
         self.verticalLayout_6 = QVBoxLayout()
         self.verticalLayout_6.setObjectName(u"verticalLayout_6")
-        self.label = QLabel(self.centralwidget)
-        self.label.setObjectName(u"label")
+        self.reconnSerialBtn = QPushButton(self.centralwidget)
+        self.reconnSerialBtn.setObjectName(u"reconnSerialBtn")
         font = QFont()
-        font.setPointSize(13)
+        font.setPointSize(10)
         font.setBold(True)
         font.setWeight(75)
-        self.label.setFont(font)
-        self.label.setLayoutDirection(Qt.LeftToRight)
-        self.label.setAutoFillBackground(True)
-        self.label.setFrameShape(QFrame.NoFrame)
-        self.label.setScaledContents(False)
-        self.label.setAlignment(Qt.AlignBottom|Qt.AlignLeading|Qt.AlignLeft)
-        self.label.setMargin(0)
+        self.reconnSerialBtn.setFont(font)
 
-        self.verticalLayout_6.addWidget(self.label)
+        self.verticalLayout_6.addWidget(self.reconnSerialBtn)
 
         self.curModeLineEdit = QLineEdit(self.centralwidget)
         self.curModeLineEdit.setObjectName(u"curModeLineEdit")
-        self.curModeLineEdit.setFont(font)
+        font1 = QFont()
+        font1.setPointSize(13)
+        font1.setBold(True)
+        font1.setWeight(75)
+        self.curModeLineEdit.setFont(font1)
         self.curModeLineEdit.setReadOnly(True)
 
         self.verticalLayout_6.addWidget(self.curModeLineEdit)
 
-        self.verticalLayout_6.setStretch(0, 1)
         self.verticalLayout_6.setStretch(1, 1)
 
         self.verticalLayout_4.addLayout(self.verticalLayout_6)
@@ -63,29 +60,25 @@ class Ui_MainWindow(object):
         self.verticalLayout_5.setObjectName(u"verticalLayout_5")
         self.stdModeBtn = QPushButton(self.centralwidget)
         self.stdModeBtn.setObjectName(u"stdModeBtn")
-        font1 = QFont()
-        font1.setPointSize(10)
-        font1.setBold(True)
-        font1.setWeight(75)
-        self.stdModeBtn.setFont(font1)
+        self.stdModeBtn.setFont(font)
 
         self.verticalLayout_5.addWidget(self.stdModeBtn)
 
         self.trnModeBtn = QPushButton(self.centralwidget)
         self.trnModeBtn.setObjectName(u"trnModeBtn")
-        self.trnModeBtn.setFont(font1)
+        self.trnModeBtn.setFont(font)
 
         self.verticalLayout_5.addWidget(self.trnModeBtn)
 
         self.regModeBtn = QPushButton(self.centralwidget)
         self.regModeBtn.setObjectName(u"regModeBtn")
-        self.regModeBtn.setFont(font1)
+        self.regModeBtn.setFont(font)
 
         self.verticalLayout_5.addWidget(self.regModeBtn)
 
         self.cnlModeBtn = QPushButton(self.centralwidget)
         self.cnlModeBtn.setObjectName(u"cnlModeBtn")
-        self.cnlModeBtn.setFont(font1)
+        self.cnlModeBtn.setFont(font)
 
         self.verticalLayout_5.addWidget(self.cnlModeBtn)
 
@@ -115,38 +108,38 @@ class Ui_MainWindow(object):
         self.formLayout.setObjectName(u"formLayout")
         self.label_2 = QLabel(self.groupBox)
         self.label_2.setObjectName(u"label_2")
-        self.label_2.setFont(font1)
+        self.label_2.setFont(font)
 
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.label_2)
 
         self.readRidLineEdit = QLineEdit(self.groupBox)
         self.readRidLineEdit.setObjectName(u"readRidLineEdit")
-        self.readRidLineEdit.setFont(font1)
+        self.readRidLineEdit.setFont(font)
 
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.readRidLineEdit)
 
         self.label_3 = QLabel(self.groupBox)
         self.label_3.setObjectName(u"label_3")
-        self.label_3.setFont(font1)
+        self.label_3.setFont(font)
 
         self.formLayout.setWidget(1, QFormLayout.LabelRole, self.label_3)
 
         self.readEnableLineEdit = QLineEdit(self.groupBox)
         self.readEnableLineEdit.setObjectName(u"readEnableLineEdit")
-        self.readEnableLineEdit.setFont(font1)
+        self.readEnableLineEdit.setFont(font)
         self.readEnableLineEdit.setReadOnly(True)
 
         self.formLayout.setWidget(1, QFormLayout.FieldRole, self.readEnableLineEdit)
 
         self.label_4 = QLabel(self.groupBox)
         self.label_4.setObjectName(u"label_4")
-        self.label_4.setFont(font1)
+        self.label_4.setFont(font)
 
         self.formLayout.setWidget(2, QFormLayout.LabelRole, self.label_4)
 
         self.readBalanceLineEdit = QLineEdit(self.groupBox)
         self.readBalanceLineEdit.setObjectName(u"readBalanceLineEdit")
-        self.readBalanceLineEdit.setFont(font1)
+        self.readBalanceLineEdit.setFont(font)
         self.readBalanceLineEdit.setReadOnly(True)
 
         self.formLayout.setWidget(2, QFormLayout.FieldRole, self.readBalanceLineEdit)
@@ -158,13 +151,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_3.setObjectName(u"horizontalLayout_3")
         self.clearReadRidBtn = QPushButton(self.groupBox)
         self.clearReadRidBtn.setObjectName(u"clearReadRidBtn")
-        self.clearReadRidBtn.setFont(font1)
+        self.clearReadRidBtn.setFont(font)
 
         self.horizontalLayout_3.addWidget(self.clearReadRidBtn)
 
         self.queryCardInfoBtn = QPushButton(self.groupBox)
         self.queryCardInfoBtn.setObjectName(u"queryCardInfoBtn")
-        self.queryCardInfoBtn.setFont(font1)
+        self.queryCardInfoBtn.setFont(font)
 
         self.horizontalLayout_3.addWidget(self.queryCardInfoBtn)
 
@@ -189,7 +182,7 @@ class Ui_MainWindow(object):
         self.formLayout_2.setObjectName(u"formLayout_2")
         self.label_5 = QLabel(self.trnTab)
         self.label_5.setObjectName(u"label_5")
-        self.label_5.setFont(font1)
+        self.label_5.setFont(font)
 
         self.formLayout_2.setWidget(0, QFormLayout.LabelRole, self.label_5)
 
@@ -197,19 +190,19 @@ class Ui_MainWindow(object):
         self.trnFlowComboBox.addItem("")
         self.trnFlowComboBox.addItem("")
         self.trnFlowComboBox.setObjectName(u"trnFlowComboBox")
-        self.trnFlowComboBox.setFont(font1)
+        self.trnFlowComboBox.setFont(font)
 
         self.formLayout_2.setWidget(0, QFormLayout.FieldRole, self.trnFlowComboBox)
 
         self.label_6 = QLabel(self.trnTab)
         self.label_6.setObjectName(u"label_6")
-        self.label_6.setFont(font1)
+        self.label_6.setFont(font)
 
         self.formLayout_2.setWidget(1, QFormLayout.LabelRole, self.label_6)
 
         self.trnValLineEdit = QLineEdit(self.trnTab)
         self.trnValLineEdit.setObjectName(u"trnValLineEdit")
-        self.trnValLineEdit.setFont(font1)
+        self.trnValLineEdit.setFont(font)
 
         self.formLayout_2.setWidget(1, QFormLayout.FieldRole, self.trnValLineEdit)
 
@@ -220,13 +213,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_4.setObjectName(u"horizontalLayout_4")
         self.clearTrnValBtn = QPushButton(self.trnTab)
         self.clearTrnValBtn.setObjectName(u"clearTrnValBtn")
-        self.clearTrnValBtn.setFont(font1)
+        self.clearTrnValBtn.setFont(font)
 
         self.horizontalLayout_4.addWidget(self.clearTrnValBtn)
 
         self.execTrnBtn = QPushButton(self.trnTab)
         self.execTrnBtn.setObjectName(u"execTrnBtn")
-        self.execTrnBtn.setFont(font1)
+        self.execTrnBtn.setFont(font)
 
         self.horizontalLayout_4.addWidget(self.execTrnBtn)
 
@@ -244,56 +237,56 @@ class Ui_MainWindow(object):
         self.formLayout_3.setObjectName(u"formLayout_3")
         self.label_7 = QLabel(self.regTab)
         self.label_7.setObjectName(u"label_7")
-        self.label_7.setFont(font1)
+        self.label_7.setFont(font)
 
         self.formLayout_3.setWidget(0, QFormLayout.LabelRole, self.label_7)
 
         self.birthLineEdit = QLineEdit(self.regTab)
         self.birthLineEdit.setObjectName(u"birthLineEdit")
-        self.birthLineEdit.setFont(font1)
+        self.birthLineEdit.setFont(font)
 
         self.formLayout_3.setWidget(0, QFormLayout.FieldRole, self.birthLineEdit)
 
         self.label_8 = QLabel(self.regTab)
         self.label_8.setObjectName(u"label_8")
-        self.label_8.setFont(font1)
+        self.label_8.setFont(font)
 
         self.formLayout_3.setWidget(1, QFormLayout.LabelRole, self.label_8)
 
         self.personIdLineEdit = QLineEdit(self.regTab)
         self.personIdLineEdit.setObjectName(u"personIdLineEdit")
-        self.personIdLineEdit.setFont(font1)
+        self.personIdLineEdit.setFont(font)
 
         self.formLayout_3.setWidget(1, QFormLayout.FieldRole, self.personIdLineEdit)
 
         self.label_9 = QLabel(self.regTab)
         self.label_9.setObjectName(u"label_9")
-        self.label_9.setFont(font1)
+        self.label_9.setFont(font)
 
         self.formLayout_3.setWidget(2, QFormLayout.LabelRole, self.label_9)
 
         self.phoneNumLineEdit = QLineEdit(self.regTab)
         self.phoneNumLineEdit.setObjectName(u"phoneNumLineEdit")
-        self.phoneNumLineEdit.setFont(font1)
+        self.phoneNumLineEdit.setFont(font)
 
         self.formLayout_3.setWidget(2, QFormLayout.FieldRole, self.phoneNumLineEdit)
 
         self.label_10 = QLabel(self.regTab)
         self.label_10.setObjectName(u"label_10")
-        self.label_10.setFont(font1)
+        self.label_10.setFont(font)
 
         self.formLayout_3.setWidget(3, QFormLayout.LabelRole, self.label_10)
 
         self.generatedRidLineEdit = QLineEdit(self.regTab)
         self.generatedRidLineEdit.setObjectName(u"generatedRidLineEdit")
-        self.generatedRidLineEdit.setFont(font1)
+        self.generatedRidLineEdit.setFont(font)
         self.generatedRidLineEdit.setReadOnly(True)
 
         self.formLayout_3.setWidget(3, QFormLayout.FieldRole, self.generatedRidLineEdit)
 
         self.generateRidBtn = QPushButton(self.regTab)
         self.generateRidBtn.setObjectName(u"generateRidBtn")
-        self.generateRidBtn.setFont(font1)
+        self.generateRidBtn.setFont(font)
 
         self.formLayout_3.setWidget(4, QFormLayout.FieldRole, self.generateRidBtn)
 
@@ -306,13 +299,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_5.setObjectName(u"horizontalLayout_5")
         self.clearRegInfoBtn = QPushButton(self.regTab)
         self.clearRegInfoBtn.setObjectName(u"clearRegInfoBtn")
-        self.clearRegInfoBtn.setFont(font1)
+        self.clearRegInfoBtn.setFont(font)
 
         self.horizontalLayout_5.addWidget(self.clearRegInfoBtn)
 
         self.execRegBtn = QPushButton(self.regTab)
         self.execRegBtn.setObjectName(u"execRegBtn")
-        self.execRegBtn.setFont(font1)
+        self.execRegBtn.setFont(font)
 
         self.horizontalLayout_5.addWidget(self.execRegBtn)
 
@@ -338,13 +331,13 @@ class Ui_MainWindow(object):
         self.horizontalLayout_6.setObjectName(u"horizontalLayout_6")
         self.setEnableFalseBtn = QPushButton(self.cnlTab)
         self.setEnableFalseBtn.setObjectName(u"setEnableFalseBtn")
-        self.setEnableFalseBtn.setFont(font1)
+        self.setEnableFalseBtn.setFont(font)
 
         self.horizontalLayout_6.addWidget(self.setEnableFalseBtn)
 
         self.setEnableTrueBtn = QPushButton(self.cnlTab)
         self.setEnableTrueBtn.setObjectName(u"setEnableTrueBtn")
-        self.setEnableTrueBtn.setFont(font1)
+        self.setEnableTrueBtn.setFont(font)
 
         self.horizontalLayout_6.addWidget(self.setEnableTrueBtn)
 
@@ -357,7 +350,7 @@ class Ui_MainWindow(object):
         self.horizontalLayout_7.setObjectName(u"horizontalLayout_7")
         self.execCnlBtn = QPushButton(self.cnlTab)
         self.execCnlBtn.setObjectName(u"execCnlBtn")
-        self.execCnlBtn.setFont(font1)
+        self.execCnlBtn.setFont(font)
 
         self.horizontalLayout_7.addWidget(self.execCnlBtn)
 
@@ -414,7 +407,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"RFID E-Payment", None))
-        self.label.setText(QCoreApplication.translate("MainWindow", u"\u7576\u524d\u6a21\u5f0f:", None))
+        self.reconnSerialBtn.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u65b0\u9023\u63a5 Serial", None))
         self.stdModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u5f85\u6a5f\u6a21\u5f0f", None))
         self.trnModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u4ea4\u6613\u6a21\u5f0f", None))
         self.regModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a3b\u518a\u6a21\u5f0f", None))
@@ -452,3 +445,4 @@ class Ui_MainWindow(object):
         self.execCnlBtn.setText(QCoreApplication.translate("MainWindow", u"\u57f7\u884c\u8a3b\u92b7\u7a0b\u5e8f", None))
         self.funcTabWidget.setTabText(self.funcTabWidget.indexOf(self.cnlTab), QCoreApplication.translate("MainWindow", u"\u8a3b\u92b7", None))
     # retranslateUi
+

@@ -54,9 +54,10 @@ MFRC522::MIFARE_Key mifare_key;
 // Flags
 bool RFID_RID_READY_FLAG = false;
 bool NEW_CARD_READY_FLAG = false;
+bool NEW_WRITABLE_RID_FLAG = false;
 
 // State
-byte WORK_MODE = WM_TRN;  // Default is standby mode
+byte WORK_MODE = WM_STD;  // Default is standby mode
 MFRC522::StatusCode mfrc522_status;
 
 // Buffers
@@ -98,7 +99,7 @@ void setup() {
         mifare_key.keyByte[i] = 0xFF;
     }
     
-    delay(4);
+    delay(2000);
 }
 
 
@@ -115,11 +116,14 @@ void loop() {
         if (data_buffer[0] == WM_STD || data_buffer[0] == WM_REG || data_buffer[0] == WM_CNL || data_buffer[0] == WM_TRN) {
             // Switch WORK_MODE
             WORK_MODE = data_buffer[0];
-        } else if (data_buffer[0] == RID_CARRY) {
+            NEW_WRITABLE_RID_FLAG = false;
+        } else if (data_buffer[0] == RID_CARRY && WORK_MODE == WM_REG) {
             // Store rid
             for (size_t i = 1; i < 1 + RID_SIZE; i++) {
                 rid_from_serial[i-1] = data_buffer[i];
             }
+            // enable to write rid to card
+            NEW_WRITABLE_RID_FLAG = true;
         }
     }
   
@@ -149,7 +153,7 @@ void loop() {
     switch (WORK_MODE) {
         case WM_REG:
             // Write rid_from_serial to RFID
-            if (NEW_CARD_READY_FLAG) {
+            if (NEW_CARD_READY_FLAG && NEW_WRITABLE_RID_FLAG) {
                 // Authenticate using key A
                 mfrc522_status = (MFRC522::StatusCode) mfrc522.PCD_Authenticate(
                     MFRC522::PICC_CMD_MF_AUTH_KEY_A, RFID_TRAILERBLOCK_ADDR, &mifare_key, &(mfrc522.uid)
@@ -169,8 +173,6 @@ void loop() {
                 // Send rid_from_rfid to serial
                 Serial.write(RID_CARRY);
                 Serial.write(rid_from_rfid, RID_SIZE);
-//                Serial.print(RID_CARRY);
-//                dump_byte_array(rid_from_rfid, RID_SIZE);
             }
             break;
             

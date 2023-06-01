@@ -157,6 +157,13 @@ class DatabaseInterface:
         insert_status = self.db.execute_CUD(new_transaction_stat, (rid, transact_date, abs(value), transact_flow, temp_balance))
         return update_status and insert_status
 
+    def check_registered_card_existed(self, rid: str, user_info: str) -> bool:
+        statement = "SELECT COUNT(`rid`) FROM `Card` WHERE `rid`=%s OR `user_info`=%s;"
+        ret = [row[0] for row in self.db.execute_R(statement, (rid, user_info))]
+        if not ret:
+            return False
+        return ret[0] > 0
+
 
 if __name__ == "__main__":
     db = DatabaseInterface()
