@@ -5,6 +5,10 @@
 # define RST_PIN 9
 # define BAUD    9600
 
+# define LED_WM_PIN0           6
+# define LED_WM_PIN1           7
+# define LED_RID_WRITEABLE_PIN 8
+
 # define RID_SIZE         16
 # define DATA_BUFFER_SIZE 17
 
@@ -14,7 +18,7 @@
 
 # define WM_STD     0x00  // Work mode (Standby)
 # define WM_REG     0x01  // Work mode (Register)
-# define WM_CNL     0x02  // Work mode (Cancelation)
+# define WM_CNL     0x02  // Work mode (Cancellation)
 # define WM_TRN     0x03  // Work mode (Transaction)
 # define RID_CARRY  0x0F  // RID data carried
 # define DEBUG_MSG  0x10  // Likit debug message
@@ -84,6 +88,19 @@ void dump_byte_array(byte *buffer, byte bufferSize) {
     Serial.println();
 }
 
+void set_LED_WM_PIN(byte wm) {
+    digitalWrite(LED_WM_PIN0, LOW);
+    digitalWrite(LED_WM_PIN1, LOW);
+    if (wm == WM_REG) {
+        digitalWrite(LED_WM_PIN0, HIGH);
+    } else if (wm == WM_CNL) {
+        digitalWrite(LED_WM_PIN1, HIGH);
+    } else if (wm == WM_TRN) {
+        digitalWrite(LED_WM_PIN0, HIGH);
+        digitalWrite(LED_WM_PIN1, HIGH);
+    }
+}
+
 
 /* ========================================================================================================= */
 /* Arduino main */
@@ -98,6 +115,10 @@ void setup() {
     for (byte i = 0; i < 6; i++) {
         mifare_key.keyByte[i] = 0xFF;
     }
+
+    pinMode(LED_WM_PIN0, OUTPUT);
+    pinMode(LED_WM_PIN1, OUTPUT);
+    pinMode(LED_RID_WRITEABLE_PIN, OUTPUT);
     
     delay(2000);
 }
@@ -117,6 +138,7 @@ void loop() {
             // Switch WORK_MODE
             WORK_MODE = data_buffer[0];
             NEW_WRITABLE_RID_FLAG = false;
+            set_LED_WM_PIN(WORK_MODE);
         } else if (data_buffer[0] == RID_CARRY && WORK_MODE == WM_REG) {
             // Store rid
             for (size_t i = 1; i < 1 + RID_SIZE; i++) {
@@ -125,6 +147,12 @@ void loop() {
             // enable to write rid to card
             NEW_WRITABLE_RID_FLAG = true;
         }
+    }
+
+    if (NEW_WRITABLE_RID_FLAG) {
+        digitalWrite(LED_RID_WRITEABLE_PIN, HIGH);
+    } else {
+        digitalWrite(LED_RID_WRITEABLE_PIN, LOW);
     }
   
     // Test RFID ready
@@ -187,5 +215,4 @@ void loop() {
     mfrc522.PICC_HaltA();
     // Stop encryption on PCD
     mfrc522.PCD_StopCrypto1();
-    //delay(1000);
 }

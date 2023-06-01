@@ -64,12 +64,6 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.stdModeBtn)
 
-        self.trnModeBtn = QPushButton(self.centralwidget)
-        self.trnModeBtn.setObjectName(u"trnModeBtn")
-        self.trnModeBtn.setFont(font)
-
-        self.verticalLayout_5.addWidget(self.trnModeBtn)
-
         self.regModeBtn = QPushButton(self.centralwidget)
         self.regModeBtn.setObjectName(u"regModeBtn")
         self.regModeBtn.setFont(font)
@@ -82,8 +76,14 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_5.addWidget(self.cnlModeBtn)
 
+        self.trnModeBtn = QPushButton(self.centralwidget)
+        self.trnModeBtn.setObjectName(u"trnModeBtn")
+        self.trnModeBtn.setFont(font)
+
+        self.verticalLayout_5.addWidget(self.trnModeBtn)
+
         self.verticalLayout_5.setStretch(0, 1)
-        self.verticalLayout_5.setStretch(3, 1)
+        self.verticalLayout_5.setStretch(2, 1)
 
         self.verticalLayout_4.addLayout(self.verticalLayout_5)
 
@@ -409,9 +409,9 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"RFID E-Payment", None))
         self.reconnSerialBtn.setText(QCoreApplication.translate("MainWindow", u"\u91cd\u65b0\u9023\u63a5 Serial", None))
         self.stdModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u5f85\u6a5f\u6a21\u5f0f", None))
-        self.trnModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u4ea4\u6613\u6a21\u5f0f", None))
         self.regModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a3b\u518a\u6a21\u5f0f", None))
         self.cnlModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a3b\u92b7\u6a21\u5f0f", None))
+        self.trnModeBtn.setText(QCoreApplication.translate("MainWindow", u"\u4ea4\u6613\u6a21\u5f0f", None))
         self.groupBox.setTitle(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u8cc7\u8a0a", None))
         self.label_2.setText(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u8b58\u5225 ID :", None))
         self.label_3.setText(QCoreApplication.translate("MainWindow", u"\u5361\u7247\u72c0\u614b :", None))

@@ -60,7 +60,7 @@
            </layout>
           </item>
           <item>
-           <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0,0,1">
+           <layout class="QVBoxLayout" name="verticalLayout_5" stretch="1,0,1,0">
             <item>
              <widget class="QPushButton" name="stdModeBtn">
               <property name="font">
@@ -72,20 +72,6 @@
               </property>
               <property name="text">
                <string>待機模式</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QPushButton" name="trnModeBtn">
-              <property name="font">
-               <font>
-                <pointsize>10</pointsize>
-                <weight>75</weight>
-                <bold>true</bold>
-               </font>
-              </property>
-              <property name="text">
-               <string>交易模式</string>
               </property>
              </widget>
             </item>
@@ -114,6 +100,20 @@
               </property>
               <property name="text">
                <string>註銷模式</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="trnModeBtn">
+              <property name="font">
+               <font>
+                <pointsize>10</pointsize>
+                <weight>75</weight>
+                <bold>true</bold>
+               </font>
+              </property>
+              <property name="text">
+               <string>交易模式</string>
               </property>
              </widget>
             </item>
