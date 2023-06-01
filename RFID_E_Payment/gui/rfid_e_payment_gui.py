@@ -51,7 +51,7 @@ class MainApplicationWindow(QMainWindow):
         self.ui.trnModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.TRN))
         self.ui.regModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.REG))
         self.ui.cnlModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.CNL))
-        self.ui.clearReadRidBtn.clicked.connect(self.ui.readRidLineEdit.clear)
+        self.ui.clearReadRidBtn.clicked.connect(self.clear_read_rid)
         self.ui.queryCardInfoBtn.clicked.connect(lambda _: self.query_card_info(True))
         self.ui.clearTrnValBtn.clicked.connect(self.ui.trnValLineEdit.clear)
         self.ui.execTrnBtn.clicked.connect(self.execute_transaction)
@@ -61,6 +61,7 @@ class MainApplicationWindow(QMainWindow):
         self.ui.setEnableTrueBtn.clicked.connect(lambda _: self.set_card_enable(True))
         self.ui.setEnableFalseBtn.clicked.connect(lambda _: self.set_card_enable(False))
         self.ui.execCnlBtn.clicked.connect(self.execute_cancellation)
+        self.ui.forceWriteRidBtn.clicked.connect(self.forced_writing_rid)
 
         self.rfid_curWorkMode = WorkMode.STD
         self.set_widgets_mode()
@@ -116,6 +117,8 @@ class MainApplicationWindow(QMainWindow):
         self.ui.generateRidBtn.setEnabled(False)
         self.ui.clearRegInfoBtn.setEnabled(False)
         self.ui.execRegBtn.setEnabled(False)
+        self.ui.forceWriteRidLineEdit.setEnabled(False)
+        self.ui.forceWriteRidBtn.setEnabled(False)
 
         self.ui.setEnableFalseBtn.setEnabled(False)
         self.ui.setEnableTrueBtn.setEnabled(False)
@@ -153,6 +156,8 @@ class MainApplicationWindow(QMainWindow):
             self.ui.generateRidBtn.setEnabled(True)
             self.ui.clearRegInfoBtn.setEnabled(True)
             self.ui.execRegBtn.setEnabled(True)
+            self.ui.forceWriteRidLineEdit.setEnabled(True)
+            self.ui.forceWriteRidBtn.setEnabled(True)
             self.ui.funcTabWidget.setCurrentIndex(1)
             return
 
@@ -284,6 +289,7 @@ class MainApplicationWindow(QMainWindow):
             QMessageBox.information(
                 self, "註冊程序", "已建立註冊資訊，請感應卡片來寫入ID", QMessageBox.Ok
             )
+            self.clear_register_info()
 
     def set_card_enable(self, set_enable: bool):
         read_rid = self.ui.readRidLineEdit.text().strip()
@@ -337,7 +343,37 @@ class MainApplicationWindow(QMainWindow):
             self.ui.readRidLineEdit.setText(carried_data)
             self.query_card_info()
         elif cmd == "10":
-            print(carried_data)
+            if carried_data == "ff000000000000000000000000000000":
+                print("RFID key authentication failed")
+            elif carried_data == "fe000000000000000000000000000000":
+                print("RFID read rid failed")
+            elif carried_data == "fd000000000000000000000000000000":
+                print("RFID write rid successfully")
+            elif carried_data == "fc000000000000000000000000000000":
+                print("RFID write rid failed")
+
+    def forced_writing_rid(self):
+        write_rid = self.ui.forceWriteRidLineEdit.text().replace(" ", "")
+
+        # check input is valid
+        if len(write_rid) != 32:
+            return
+        try:
+            _ = int(write_rid, 16)
+        except ValueError:
+            return
+
+        # send to serial
+        com_pack = (
+            bytes.fromhex("0f") +
+            bytes.fromhex(write_rid)
+        )
+        self.rfid_serial_thread.set_writing_data(com_pack)
+
+    def clear_read_rid(self):
+        self.ui.readRidLineEdit.clear()
+        self.ui.readBalanceLineEdit.clear()
+        self.ui.readEnableLineEdit.clear()
 
 
 if __name__ == "__main__":

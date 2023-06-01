@@ -314,6 +314,26 @@ class Ui_MainWindow(object):
 
         self.verticalLayout_11.addLayout(self.horizontalLayout_5)
 
+        self.horizontalLayout_8 = QHBoxLayout()
+        self.horizontalLayout_8.setObjectName(u"horizontalLayout_8")
+        self.forceWriteRidLineEdit = QLineEdit(self.regTab)
+        self.forceWriteRidLineEdit.setObjectName(u"forceWriteRidLineEdit")
+        self.forceWriteRidLineEdit.setFont(font)
+        self.forceWriteRidLineEdit.setClearButtonEnabled(True)
+
+        self.horizontalLayout_8.addWidget(self.forceWriteRidLineEdit)
+
+        self.forceWriteRidBtn = QPushButton(self.regTab)
+        self.forceWriteRidBtn.setObjectName(u"forceWriteRidBtn")
+        self.forceWriteRidBtn.setFont(font)
+
+        self.horizontalLayout_8.addWidget(self.forceWriteRidBtn)
+
+        self.horizontalLayout_8.setStretch(0, 1)
+        self.horizontalLayout_8.setStretch(1, 1)
+
+        self.verticalLayout_11.addLayout(self.horizontalLayout_8)
+
         self.verticalLayout_11.setStretch(0, 1)
 
         self.verticalLayout_9.addLayout(self.verticalLayout_11)
@@ -439,6 +459,7 @@ class Ui_MainWindow(object):
         self.generateRidBtn.setText(QCoreApplication.translate("MainWindow", u"\u751f\u6210\u5361\u7247\u8b58\u5225 ID", None))
         self.clearRegInfoBtn.setText(QCoreApplication.translate("MainWindow", u"\u6e05\u9664\u6240\u6709\u6b04\u4f4d", None))
         self.execRegBtn.setText(QCoreApplication.translate("MainWindow", u"\u57f7\u884c\u8a3b\u518a\u7a0b\u5e8f", None))
+        self.forceWriteRidBtn.setText(QCoreApplication.translate("MainWindow", u"\u6307\u5b9a\u5beb\u5165", None))
         self.funcTabWidget.setTabText(self.funcTabWidget.indexOf(self.regTab), QCoreApplication.translate("MainWindow", u"\u8a3b\u518a", None))
         self.setEnableFalseBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a2d\u7f6e\u5361\u7247\u70ba\u7981\u7528", None))
         self.setEnableTrueBtn.setText(QCoreApplication.translate("MainWindow", u"\u8a2d\u7f6e\u5361\u7247\u70ba\u555f\u7528", None))

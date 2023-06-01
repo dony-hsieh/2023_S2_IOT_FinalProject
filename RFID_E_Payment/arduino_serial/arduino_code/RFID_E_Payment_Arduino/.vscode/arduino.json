@@ -1,0 +1,6 @@
+{
+    "board": "LinkIt:linkit_rtos:linkit_7697",
+    "port": "COM4",
+    "programmer": "LinkIt:linkitfirmware",
+    "sketch": "RFID_E_Payment_Arduino.ino"
+}

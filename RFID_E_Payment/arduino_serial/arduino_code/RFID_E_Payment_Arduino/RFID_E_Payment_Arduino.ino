@@ -40,12 +40,18 @@
  *    --1Byte--  -------16Bytes--------
  * 
  * Commands:
- *   0x00 ---- Standby mode
- *   0x01 ---- Register mode
- *   0x02 ---- Cancelation mode
- *   0x03 ---- Transaction mode
- *   0x0F ---- RID data carried
- *   0x10 ---- Likit debug message
+ *   0x00 ---- Standby mode (no data carried)
+ *   0x01 ---- Register mode (no data carried)
+ *   0x02 ---- Cancelation mode (no data carried)
+ *   0x03 ---- Transaction mode (no data carried)
+ *   0x0F ---- RID data carried (data carried)
+ *   0x10 ---- Likit debug message (data carried)
+ * 
+ * # Debug message carried data:
+ *   {FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00} ---- RFID key authentication failed
+ *   {FE 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00} ---- RFID read rid failed
+ *   {FD 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00} ---- RFID write rid successfully
+ *   {FC 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00} ---- RFID write rid failed
  */
  
 
@@ -144,11 +150,11 @@ void loop() {
             for (size_t i = 1; i < 1 + RID_SIZE; i++) {
                 rid_from_serial[i-1] = data_buffer[i];
             }
-            // enable to write rid to card
-            NEW_WRITABLE_RID_FLAG = true;
+            NEW_WRITABLE_RID_FLAG = true;  // enable to write rid to card
         }
     }
 
+    // Set led
     if (NEW_WRITABLE_RID_FLAG) {
         digitalWrite(LED_RID_WRITEABLE_PIN, HIGH);
     } else {
@@ -171,9 +177,25 @@ void loop() {
             byte buf_size = sizeof(rid_from_rfid);
             mfrc522_status = (MFRC522::StatusCode) mfrc522.MIFARE_Read(RFID_BLOCK_ADDR, rid_from_rfid, &buf_size);
             if (mfrc522_status == MFRC522::STATUS_OK) {
-                // Set flag
-                RFID_RID_READY_FLAG = true;
+                // Read success
+                RFID_RID_READY_FLAG = true;  // set flag
+            } else {
+                // Read failed
+                byte msg[RID_SIZE] = {
+                    0xFE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                };
+                Serial.write(DEBUG_MSG);
+                Serial.write(msg, RID_SIZE);
             }
+        } else {
+            // Authenticate failed
+            byte msg[RID_SIZE] = {
+                0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+            };
+            Serial.write(DEBUG_MSG);
+            Serial.write(msg, RID_SIZE);
         }
     }
 
@@ -187,10 +209,33 @@ void loop() {
                     MFRC522::PICC_CMD_MF_AUTH_KEY_A, RFID_TRAILERBLOCK_ADDR, &mifare_key, &(mfrc522.uid)
                 );
                 if (mfrc522_status == MFRC522::STATUS_OK) {
+                    // Authenticate success
                     mfrc522_status = (MFRC522::StatusCode) mfrc522.MIFARE_Write(RFID_BLOCK_ADDR, rid_from_serial, RID_SIZE);
-                    // if (mfrc522_status != MFRC522::STATUS_OK) {
-                    //     write failed
-                    // }
+                    if (mfrc522_status == MFRC522::STATUS_OK) {
+                        // Write success
+                        byte msg[RID_SIZE] = {
+                            0xFD, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                        };
+                        Serial.write(DEBUG_MSG);
+                        Serial.write(msg, RID_SIZE);
+                    } else {
+                        // write failed
+                        byte msg[RID_SIZE] = {
+                            0xFC, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                        };
+                        Serial.write(DEBUG_MSG);
+                        Serial.write(msg, RID_SIZE);
+                    }
+                } else {
+                    // Authenticate failed
+                    byte msg[RID_SIZE] = {
+                        0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+                        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+                    };
+                    Serial.write(DEBUG_MSG);
+                    Serial.write(msg, RID_SIZE);
                 }
             }
             break;
