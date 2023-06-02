@@ -3,10 +3,12 @@ from PySide2.QtGui import QIntValidator, QCloseEvent
 
 from enum import Enum
 from datetime import datetime
+from typing import Union
+import requests
 import sys
 
 from RFID_E_Payment.definitions import (
-    MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE, SERIAL_COMMUNICATION_CARRY_DATA_SIZE
+    MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE, SERIAL_COMMUNICATION_CARRY_DATA_SIZE, DATETIME_FORMAT
 )
 from RFID_E_Payment.api.database import database
 from RFID_E_Payment.arduino_serial.serial_handler import SerialThread
@@ -31,6 +33,39 @@ class WorkMode(Enum):
         return "待機模式"
 
 
+class APIRequester:
+    def __init__(self):
+        self.url_prefix = "http://localhost:8000/rfid-epayment-api/"
+
+    def get(self, url: str):
+        if url[0] == "/":
+            url = url[1:]
+        rurl = self.url_prefix + url
+        response = requests.get(url=rurl)
+        try:
+            if response.status_code == 200:
+                json_data = response.json()
+                return json_data["api_response"]
+            return []
+        except requests.exceptions.JSONDecodeError as e:
+            print(e)
+            return []
+
+    def post(self, url: str, payload: Union[list, dict]):
+        if url[0] == "/":
+            url = url[1:]
+        rurl = self.url_prefix + url
+        response = requests.post(url=rurl, json=payload)
+        try:
+            if response.status_code == 200:
+                json_data = response.json()
+                return json_data["api_response"]
+            return []
+        except requests.exceptions.JSONDecodeError as e:
+            print(e)
+            return []
+
+
 class MainApplicationWindow(QMainWindow):
     def __init__(self):
         super(MainApplicationWindow, self).__init__()
@@ -39,10 +74,10 @@ class MainApplicationWindow(QMainWindow):
 
         self.db = database.DatabaseInterface()
         self.rfid_serial_thread = SerialThread()
+        self.requester = APIRequester()
 
-        self.rfid_serial_thread.new_data_from_serial.connect(self.parse_serial_reading_pack)
-        self.rfid_serial_thread.open_serial()
-        self.rfid_serial_thread.start()
+        self.rfid_serial_thread.new_data_from_serial.connect(self.parse_serial_reading_data)
+        self.reconnect_serial()
 
         self.ui.trnValLineEdit.setValidator(QIntValidator(MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE))
 
@@ -67,11 +102,9 @@ class MainApplicationWindow(QMainWindow):
         self.set_widgets_mode()
 
         # init the mode of rfid
-        com_pack = (
-            bytes.fromhex(self.rfid_curWorkMode.value) +
-            bytes.fromhex("00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE)
+        self.parse_data_writing_serial(
+            self.rfid_curWorkMode.value, "00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE
         )
-        self.rfid_serial_thread.set_writing_data(com_pack)
 
     def closeEvent(self, event: QCloseEvent):
         self.rfid_serial_thread.stop()
@@ -82,11 +115,9 @@ class MainApplicationWindow(QMainWindow):
             self.set_widgets_mode()
 
             # send controlling command to serial
-            com_pack = (
-                bytes.fromhex(self.rfid_curWorkMode.value) +
-                bytes.fromhex("00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE)
+            self.parse_data_writing_serial(
+                self.rfid_curWorkMode.value, "00" * SERIAL_COMMUNICATION_CARRY_DATA_SIZE
             )
-            self.rfid_serial_thread.set_writing_data(com_pack)
 
     def set_widgets_mode(self):
         # show mode string
@@ -172,7 +203,8 @@ class MainApplicationWindow(QMainWindow):
     def query_card_info(self, triggered_by_click: bool = False):
         flag = False
         read_rid = self.ui.readRidLineEdit.text().strip()
-        ret = self.db.find_card(read_rid)
+        # ret = self.db.find_card(read_rid)
+        ret = self.requester.get(f"card/{read_rid}/")
         enable_text = ""
         balance_text = ""
         if ret:
@@ -181,15 +213,21 @@ class MainApplicationWindow(QMainWindow):
             balance_text = str(ret[0]["balance"])
         self.ui.readEnableLineEdit.setText(enable_text)
         self.ui.readBalanceLineEdit.setText(balance_text)
-        if triggered_by_click and not flag:
-            QMessageBox.warning(
-                self, "查詢卡片", "查無此卡片", QMessageBox.Ok
+        if triggered_by_click:
+            if not flag:
+                QMessageBox.warning(
+                    self, "查詢卡片", "查無此卡片", QMessageBox.Ok
+                )
+                return
+            QMessageBox.information(
+                self, "查詢卡片", "查詢成功", QMessageBox.Ok
             )
 
     def execute_transaction(self):
         # check rid
         read_rid = self.ui.readRidLineEdit.text().strip()
-        ret = self.db.find_card(read_rid)
+        # ret = self.db.find_card(read_rid)
+        ret = self.requester.get(f"card/{read_rid}/")
         if not ret:
             QMessageBox.critical(
                 self, "交易程序", "查無可進行交易的卡片", QMessageBox.Ok
@@ -212,7 +250,10 @@ class MainApplicationWindow(QMainWindow):
             return
 
         # execute transaction
-        success = self.db.update_card_transact(read_rid, trn_flow * trn_val)
+        # success = self.db.update_card_transact(read_rid, trn_flow * trn_val)
+        success = self.requester.post(
+            "transact/", {"rid": read_rid, "value": trn_flow * trn_val}
+        )
         if success:
             self.query_card_info()
             self.ui.trnFlowComboBox.setCurrentIndex(0)
@@ -271,7 +312,13 @@ class MainApplicationWindow(QMainWindow):
         user_info = person_birth + person_id + person_phone_number
 
         # check if register data existed
-        existed = self.db.check_registered_card_existed(rid, user_info)
+        # existed = self.db.check_registered_card_existed(rid, user_info)
+        existed = self.requester.post("card_existed/", {"rid": rid, "user_info": user_info})
+        if isinstance(existed, int) and existed == -1:
+            QMessageBox.critical(
+                self, "註冊程序", "API呼叫錯誤", QMessageBox.Ok
+            )
+            return
         if existed:
             QMessageBox.critical(
                 self, "註冊程序", "註冊資料已被使用", QMessageBox.Ok
@@ -279,21 +326,29 @@ class MainApplicationWindow(QMainWindow):
             return
 
         # send to serial, then insert to db
-        com_pack = (
-            bytes.fromhex("0f") +
-            bytes.fromhex(rid)
+        self.parse_data_writing_serial("0f", rid)
+        # success = self.db.add_card(rid, user_info, hkey, 0, True, datetime.now())
+        success = self.requester.post(
+            "add_card/",
+            {"rid": rid, "user_info": user_info, "hash_key": hkey,
+             "balance": 0, "enable": True, "reg_date": datetime.strftime(datetime.now(), DATETIME_FORMAT)}
         )
-        self.rfid_serial_thread.set_writing_data(com_pack)
-        success = self.db.add_card(rid, user_info, hkey, 0, True, datetime.now())
+        if isinstance(success, int) and success == -1:
+            success = False
         if success:
             QMessageBox.information(
                 self, "註冊程序", "已建立註冊資訊，請感應卡片來寫入ID", QMessageBox.Ok
             )
             self.clear_register_info()
+            return
+        QMessageBox.critical(
+            self, "註冊程序", "資料插入失敗，註冊失敗", QMessageBox.Ok
+        )
 
     def set_card_enable(self, set_enable: bool):
         read_rid = self.ui.readRidLineEdit.text().strip()
-        ret = self.db.find_card(read_rid)
+        # ret = self.db.find_card(read_rid)
+        ret = self.requester.get(f"card/{read_rid}/")
         if not ret:
             QMessageBox.critical(
                 self, "設置卡片", "查無可設置的卡片", QMessageBox.Ok
@@ -301,7 +356,8 @@ class MainApplicationWindow(QMainWindow):
             return
         original_enable = True if ret[0]["enable"] > 0 else False
         if original_enable != set_enable:
-            success = self.db.update_card_set_enable(read_rid, set_enable)
+            # success = self.db.update_card_set_enable(read_rid, set_enable)
+            success = self.requester.post("card_enable/", {"rid": read_rid, "enable": set_enable})
             self.query_card_info()
             if success:
                 QMessageBox.information(
@@ -314,43 +370,69 @@ class MainApplicationWindow(QMainWindow):
 
     def execute_cancellation(self):
         read_rid = self.ui.readRidLineEdit.text().strip()
-        ret = self.db.find_card(read_rid)
+        # ret = self.db.find_card(read_rid)
+        ret = self.requester.get(f"card/{read_rid}/")
         if not ret:
             QMessageBox.critical(
                 self, "註銷程序", "查無可進行註銷的卡片", QMessageBox.Ok
             )
             return
         confirm_to_cancel = QMessageBox.warning(
-            self, "註銷卡片", f"確定要註銷卡片\nID=\"{read_rid}\"", QMessageBox.No | QMessageBox.Yes, QMessageBox.No
+            self, "註銷程序", f"確定要註銷卡片\nID=\"{read_rid}\"", QMessageBox.No | QMessageBox.Yes, QMessageBox.No
         )
         if confirm_to_cancel == QMessageBox.Yes:
-            self.db.delete_card(read_rid)
-            self.ui.readRidLineEdit.clear()
-            self.ui.readEnableLineEdit.clear()
-            self.ui.readBalanceLineEdit.clear()
+            # self.db.delete_card(read_rid)
+            success = self.requester.get(f"delete_card/{read_rid}/")
+            if success:
+                self.ui.readRidLineEdit.clear()
+                self.ui.readEnableLineEdit.clear()
+                self.ui.readBalanceLineEdit.clear()
+                QMessageBox.information(
+                    self, "註銷程序", "註銷成功", QMessageBox.Ok
+                )
+                return
+            QMessageBox.critical(
+                self, "註銷程序", "註銷失敗", QMessageBox.Ok
+            )
 
     def reconnect_serial(self):
         self.rfid_serial_thread.stop()
         success = self.rfid_serial_thread.open_serial()
         if success:
             self.rfid_serial_thread.start()
+            self.logging_monitor("Open serial successfully")
+            self.logging_monitor("Serial thread running")
+        else:
+            self.logging_monitor("Open Serial failed")
 
-    def parse_serial_reading_pack(self):
+    def parse_serial_reading_data(self):
         raw_data = self.rfid_serial_thread.get_reading_data().hex()
         cmd = raw_data[0:2]
         carried_data = raw_data[2:]
         if cmd == "0f":
             self.ui.readRidLineEdit.setText(carried_data)
+            self.logging_monitor(f"Read rid={carried_data}")
             self.query_card_info()
         elif cmd == "10":
             if carried_data == "ff000000000000000000000000000000":
-                print("RFID key authentication failed")
+                self.logging_monitor("RFID key authentication failed")
             elif carried_data == "fe000000000000000000000000000000":
-                print("RFID read rid failed")
+                self.logging_monitor("RFID read rid failed")
             elif carried_data == "fd000000000000000000000000000000":
-                print("RFID write rid successfully")
+                self.logging_monitor("RFID write rid successfully")
             elif carried_data == "fc000000000000000000000000000000":
-                print("RFID write rid failed")
+                self.logging_monitor("RFID write rid failed")
+
+    def parse_data_writing_serial(self, cmd_hex: str, carried_data_hex: str):
+        com_pack = bytes.fromhex(cmd_hex) + bytes.fromhex(carried_data_hex)
+        self.rfid_serial_thread.set_writing_data(com_pack)
+        if cmd_hex == "0f":
+            self.logging_monitor(f"Write rid to serial. rid={carried_data_hex}")
+
+    def logging_monitor(self, log_msg: str):
+        log_time = datetime.strftime(datetime.now(), DATETIME_FORMAT)
+        out = f"[{log_time}] {log_msg}"
+        self.ui.monitorTextEdit.appendPlainText(out)
 
     def forced_writing_rid(self):
         write_rid = self.ui.forceWriteRidLineEdit.text().replace(" ", "")
@@ -364,11 +446,7 @@ class MainApplicationWindow(QMainWindow):
             return
 
         # send to serial
-        com_pack = (
-            bytes.fromhex("0f") +
-            bytes.fromhex(write_rid)
-        )
-        self.rfid_serial_thread.set_writing_data(com_pack)
+        self.parse_data_writing_serial("0f", write_rid)
 
     def clear_read_rid(self):
         self.ui.readRidLineEdit.clear()

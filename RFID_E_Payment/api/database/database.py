@@ -168,10 +168,10 @@ class DatabaseInterface:
 if __name__ == "__main__":
     db = DatabaseInterface()
 
-    info = "20020101" + "N123456789" + "0912345678"
-    hkey, rid = generate_blake2_hash(info)
-    ret = db.add_card(rid, info, hkey, 0, True, datetime.now())
-    print(ret)
+    # info = "20020101" + "N123456789" + "0912345678"
+    # hkey, rid = generate_blake2_hash(info)
+    # ret = db.add_card(rid, info, hkey, 0, True, datetime.now())
+    # print(ret)
 
     # ret = db.update_card_transact("c9f72ac973fe040c12920fa32f27c061", -200)
     # print(ret)

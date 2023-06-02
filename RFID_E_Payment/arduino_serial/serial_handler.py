@@ -33,7 +33,8 @@ class SerialThread(QThread):
 
     def run(self):
         if not self.serial.is_open:
-            print("Serial is not open")
+            self.running = False
+            self.writing_flag = False
             return
         self.running = True
         self.serial.flushInput()
