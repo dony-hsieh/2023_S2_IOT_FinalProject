@@ -413,6 +413,15 @@ class MainApplicationWindow(QMainWindow):
             self.ui.readRidLineEdit.setText(carried_data)
             self.logging_monitor(f"Read rid={carried_data}")
             self.query_card_info()
+            if (
+                    self.ui.readEnableLineEdit.text().replace(" ", "") and
+                    self.ui.readBalanceLineEdit.text().replace(" ", "")
+            ):
+                # add scan card and time to db
+                self.requester.post(
+                    "add_scan_history/",
+                    {"rid": carried_data, "scan_time": datetime.strftime(datetime.now(), DATETIME_FORMAT)}
+                )
         elif cmd == "10":
             if carried_data == "ff000000000000000000000000000000":
                 self.logging_monitor("RFID key authentication failed")

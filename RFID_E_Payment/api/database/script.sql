@@ -24,3 +24,10 @@ CREATE TABLE `TransactionRecord` (
     FOREIGN KEY (`rid`) REFERENCES `Card`(`rid`)
     ON DELETE CASCADE  ON UPDATE CASCADE
 );
+
+CREATE TABLE `ScanHistory` (
+    `rid`         VARCHAR(32)  NOT NULL,
+    `scan_time`   DATETIME     NOT NULL,
+    PRIMARY KEY (`rid`, `scan_time`),
+    FOREIGN KEY (`rid`) REFERENCES Card(`rid`)  ON DELETE CASCADE  ON UPDATE CASCADE
+);

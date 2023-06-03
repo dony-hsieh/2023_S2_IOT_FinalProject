@@ -120,7 +120,7 @@ class DatabaseInterface:
         oper_card = oper_card[0]
         new_enable_val = 1 if enable else 0
         if oper_card["enable"] == new_enable_val:
-            return
+            return False
         set_enable_stat = "UPDATE `Card` SET `enable`=%s WHERE `rid`=%s;"
         return self.db.execute_CUD(set_enable_stat, (new_enable_val, rid))
 
@@ -163,6 +163,32 @@ class DatabaseInterface:
         if not ret:
             return False
         return ret[0] > 0
+
+    def find_all_scan_histories(self, rid: str):
+        statement = """
+            SELECT `ScanHistory`.`rid`, `ScanHistory`.`scan_time` FROM `ScanHistory`, `Card`
+            WHERE `ScanHistory`.`rid`=`Card`.`rid` AND `ScanHistory`.`rid`=%s;
+        """.strip()
+        ret = [{"rid": row[0], "scan_time": row[1]} for row in self.db.execute_R(statement, (rid,))]
+        return ret
+
+    def add_scan_history(self, rid: str, scan_time: datetime):
+        statement = "INSERT INTO `ScanHistory` (`rid`, `scan_time`) VALUES (%s, %s);"
+        return self.db.execute_CUD(statement, (rid, datetime.strftime(scan_time, DATETIME_FORMAT)))
+
+    def find_newest_scan_history(self, rid: str):
+        statement = """
+            SELECT `ScanHistory`.`rid`, `ScanHistory`.`scan_time` FROM `ScanHistory`
+            WHERE `ScanHistory`.`scan_time`=(
+                    SELECT MAX(`ScanHistory`.`scan_time`) FROM `ScanHistory`, `Card`
+                    WHERE `ScanHistory`.`rid`=`Card`.`rid` AND `ScanHistory`.`rid`=%s
+                );
+        """.strip()
+        ret = [
+            {"rid": row[0], "scan_time": datetime.strftime(row[1], DATETIME_FORMAT)}
+            for row in self.db.execute_R(statement, (rid,))
+        ]
+        return ret
 
 
 if __name__ == "__main__":
