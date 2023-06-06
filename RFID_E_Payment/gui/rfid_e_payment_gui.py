@@ -3,8 +3,6 @@ from PySide2.QtGui import QIntValidator, QCloseEvent
 
 from enum import Enum
 from datetime import datetime
-from typing import Union
-import requests
 import sys
 
 from RFID_E_Payment.definitions import (
@@ -12,6 +10,7 @@ from RFID_E_Payment.definitions import (
 )
 from RFID_E_Payment.api.database import database
 from RFID_E_Payment.arduino_serial.serial_handler import SerialThread
+from api_request import APIRequester
 import mainwindow_ui
 
 
@@ -31,39 +30,6 @@ class WorkMode(Enum):
         if self.value == "03":
             return "交易模式"
         return "待機模式"
-
-
-class APIRequester:
-    def __init__(self):
-        self.url_prefix = "http://localhost:8000/rfid-epayment-api/"
-
-    def get(self, url: str):
-        if url[0] == "/":
-            url = url[1:]
-        rurl = self.url_prefix + url
-        response = requests.get(url=rurl)
-        try:
-            if response.status_code == 200:
-                json_data = response.json()
-                return json_data["api_response"]
-            return []
-        except requests.exceptions.JSONDecodeError as e:
-            print(e)
-            return []
-
-    def post(self, url: str, payload: Union[list, dict]):
-        if url[0] == "/":
-            url = url[1:]
-        rurl = self.url_prefix + url
-        response = requests.post(url=rurl, json=payload)
-        try:
-            if response.status_code == 200:
-                json_data = response.json()
-                return json_data["api_response"]
-            return []
-        except requests.exceptions.JSONDecodeError as e:
-            print(e)
-            return []
 
 
 class MainApplicationWindow(QMainWindow):

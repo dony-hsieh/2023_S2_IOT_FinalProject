@@ -180,13 +180,27 @@ class DatabaseInterface:
         statement = """
             SELECT `ScanHistory`.`rid`, `ScanHistory`.`scan_time` FROM `ScanHistory`
             WHERE `ScanHistory`.`scan_time`=(
-                    SELECT MAX(`ScanHistory`.`scan_time`) FROM `ScanHistory`, `Card`
-                    WHERE `ScanHistory`.`rid`=`Card`.`rid` AND `ScanHistory`.`rid`=%s
-                );
+                SELECT MAX(`ScanHistory`.`scan_time`) FROM `ScanHistory`, `Card`
+                WHERE `ScanHistory`.`rid`=`Card`.`rid` AND `ScanHistory`.`rid`=%s
+            );
         """.strip()
         ret = [
             {"rid": row[0], "scan_time": datetime.strftime(row[1], DATETIME_FORMAT)}
             for row in self.db.execute_R(statement, (rid,))
+        ]
+        return ret
+
+    def find_any_newest_scan_history(self):
+        statement = """
+            SELECT `ScanHistory`.`rid`, `ScanHistory`.`scan_time` FROM `ScanHistory`
+            WHERE `ScanHistory`.`scan_time`=(
+                SELECT MAX(`ScanHistory`.`scan_time`) FROM `ScanHistory`, `Card`
+                WHERE `ScanHistory`.`rid`=`Card`.`rid`
+            );
+        """.strip()
+        ret = [
+            {"rid": row[0], "scan_time": datetime.strftime(row[1], DATETIME_FORMAT)}
+            for row in self.db.execute_R(statement)
         ]
         return ret
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Body, Request, Response
+from fastapi import FastAPI, Body
 import uvicorn
 from datetime import datetime
 
@@ -101,6 +101,12 @@ async def add_scan_history(payload: dict = Body(...)):
 @app.get("/rfid-epayment-api/newest_scan_history/{rid}/")
 async def get_newest_scan_histories(rid: str):
     ret = server_db.find_newest_scan_history(rid)
+    return {"api_response": ret}
+
+
+@app.get("/rfid-epayment-api/newest_scan_history/")
+async def get_any_newest_scan_histories():
+    ret = server_db.find_any_newest_scan_history()
     return {"api_response": ret}
 
 
