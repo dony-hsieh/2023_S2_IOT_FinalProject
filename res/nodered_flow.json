@@ -1,0 +1,723 @@
+[
+    {
+        "id": "380302d7eb07d46d",
+        "type": "tab",
+        "label": "Main flow",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "d680aaca598e3312",
+        "type": "inject",
+        "z": "380302d7eb07d46d",
+        "name": "",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 60,
+        "wires": [
+            [
+                "83c40e2cd8362fed"
+            ]
+        ]
+    },
+    {
+        "id": "83c40e2cd8362fed",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Request scan record",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://127.0.0.1:8000/rfid-epayment-api/newest_scan_history/cb9df94b461ffb6829ea3a14e46af587/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 320,
+        "y": 60,
+        "wires": [
+            [
+                "24077e0ec2fb223e"
+            ]
+        ]
+    },
+    {
+        "id": "24077e0ec2fb223e",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Extract scan record",
+        "func": "msg.payload = msg.payload[\"api_response\"][0];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 550,
+        "y": 60,
+        "wires": [
+            [
+                "6cb2054b7d465dbb"
+            ]
+        ]
+    },
+    {
+        "id": "6cb2054b7d465dbb",
+        "type": "change",
+        "z": "380302d7eb07d46d",
+        "name": "Store scan_history and set request url",
+        "rules": [
+            {
+                "t": "set",
+                "p": "scan_history",
+                "pt": "msg",
+                "to": "payload",
+                "tot": "msg",
+                "dc": true
+            }
+        ],
+        "action": "",
+        "property": "",
+        "from": "",
+        "to": "",
+        "reg": false,
+        "x": 370,
+        "y": 140,
+        "wires": [
+            [
+                "4fd58a29f2580443"
+            ]
+        ]
+    },
+    {
+        "id": "4fd58a29f2580443",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Form request url",
+        "func": "let rid = msg.payload[\"rid\"];\nlet rurl = \"http://127.0.0.1:8000/rfid-epayment-api/transaction_record/\";\nrurl += rid + \"/\";\nmsg.url = rurl;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 220,
+        "wires": [
+            [
+                "27ae67675b9df3f3"
+            ]
+        ]
+    },
+    {
+        "id": "27ae67675b9df3f3",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Request transaction records",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 540,
+        "y": 220,
+        "wires": [
+            [
+                "b49eb075f858cb2b"
+            ]
+        ]
+    },
+    {
+        "id": "434d93c4beefbc76",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Handle data",
+        "func": "let data = {};\ndata[\"rid\"] = msg.scan_history[\"rid\"];\ndata[\"scan_time\"] = msg.scan_history[\"scan_time\"];\ndata[\"transaction_record\"] = [];\nmsg.payload.forEach(function(e) {\n    let row = {};\n    row[\"transaction_date\"] = e[\"transaction_date\"];\n    row[\"value\"] = e[\"value\"];\n    row[\"flow\"] = e[\"flow\"];\n    row[\"balance_after_transaction\"] = e[\"balance_after_transaction\"];\n    data[\"transaction_record\"].push(row);\n});\nmsg.payload = data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 300,
+        "wires": [
+            [
+                "9deabcc3ded6ba34"
+            ]
+        ]
+    },
+    {
+        "id": "b49eb075f858cb2b",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Extract transaction records",
+        "func": "msg.payload = msg.payload[\"api_response\"];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 300,
+        "wires": [
+            [
+                "434d93c4beefbc76"
+            ]
+        ]
+    },
+    {
+        "id": "9deabcc3ded6ba34",
+        "type": "debug",
+        "z": "380302d7eb07d46d",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 740,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "b4ef3f40dea66542",
+        "type": "ui_button",
+        "z": "380302d7eb07d46d",
+        "name": "ClearInputBtn",
+        "group": "020ec5b5af1e9526",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Clear",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "clear",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 120,
+        "y": 400,
+        "wires": [
+            [
+                "9270d6891b7b7fac"
+            ]
+        ]
+    },
+    {
+        "id": "d915f677c9894c13",
+        "type": "ui_text_input",
+        "z": "380302d7eb07d46d",
+        "name": "",
+        "label": "Input Card ID",
+        "tooltip": "",
+        "group": "020ec5b5af1e9526",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "passthru": true,
+        "mode": "text",
+        "delay": 300,
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 810,
+        "y": 520,
+        "wires": [
+            [
+                "954e14d3b4498ec6",
+                "b14e2a3aba41bc9b"
+            ]
+        ]
+    },
+    {
+        "id": "9270d6891b7b7fac",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Asign empty str",
+        "func": "msg.payload = \"\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 420,
+        "y": 400,
+        "wires": [
+            [
+                "d915f677c9894c13",
+                "84a69e9785947b40",
+                "10551f533d0341ad",
+                "63d3afadee803efa",
+                "c5546e0467c30ed3",
+                "cf85b458df628a1f"
+            ]
+        ]
+    },
+    {
+        "id": "afaba37fe62c585c",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Request transaction records",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 580,
+        "y": 640,
+        "wires": [
+            [
+                "2ccde996245aa987"
+            ]
+        ]
+    },
+    {
+        "id": "954e14d3b4498ec6",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Request url (TRN)",
+        "func": "msg.url = \"http://127.0.0.1:8000/rfid-epayment-api/transaction_record/\";\nmsg.url += msg.payload + \"/\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 330,
+        "y": 640,
+        "wires": [
+            [
+                "afaba37fe62c585c"
+            ]
+        ]
+    },
+    {
+        "id": "2ccde996245aa987",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Transaction record data",
+        "func": "msg.payload = msg.payload[\"api_response\"];\nlet table_data = [];\nmsg.payload.forEach(function(e) {\n    let new_row = {};\n    new_row[\"transaction_date\"] = e[\"transaction_date\"];\n    new_row[\"flow\"] = e[\"flow\"];\n    new_row[\"value\"] = e[\"value\"];\n    new_row[\"balance_after_transaction\"] = e[\"balance_after_transaction\"];\n    table_data.push(e);\n});\nmsg.trn_table_data = table_data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 850,
+        "y": 640,
+        "wires": [
+            [
+                "cf85b458df628a1f"
+            ]
+        ]
+    },
+    {
+        "id": "84a69e9785947b40",
+        "type": "ui_text",
+        "z": "380302d7eb07d46d",
+        "group": "434a74d5a34e06a9",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Balance",
+        "format": "{{msg.card_balance}}",
+        "layout": "row-spread",
+        "x": 980,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "b14e2a3aba41bc9b",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Request url (balance)",
+        "func": "msg.url = \"http://127.0.0.1:8000/rfid-epayment-api/card/\";\nmsg.url += msg.payload + \"/\";\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 340,
+        "y": 760,
+        "wires": [
+            [
+                "939132072cc8ae75"
+            ]
+        ]
+    },
+    {
+        "id": "939132072cc8ae75",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Requence balance",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 570,
+        "y": 760,
+        "wires": [
+            [
+                "f6cafbbcc264a3d3"
+            ]
+        ]
+    },
+    {
+        "id": "f6cafbbcc264a3d3",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Text data",
+        "func": "msg.payload = msg.payload[\"api_response\"][0];\nmsg.card_rid = msg.payload[\"rid\"];\nmsg.card_balance = msg.payload[\"balance\"] + \"\";\nif (msg.payload[\"enable\"] === 1) {\n    msg.card_state = \"Enable\";\n} else {\n    msg.card_state = \"Disable\";\n}\nmsg.open_date = msg.payload[\"reg_date\"];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 760,
+        "y": 760,
+        "wires": [
+            [
+                "84a69e9785947b40",
+                "10551f533d0341ad",
+                "63d3afadee803efa",
+                "c5546e0467c30ed3"
+            ]
+        ]
+    },
+    {
+        "id": "10551f533d0341ad",
+        "type": "ui_text",
+        "z": "380302d7eb07d46d",
+        "group": "434a74d5a34e06a9",
+        "order": 3,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "State",
+        "format": "{{msg.card_state}}",
+        "layout": "row-spread",
+        "x": 970,
+        "y": 780,
+        "wires": []
+    },
+    {
+        "id": "63d3afadee803efa",
+        "type": "ui_text",
+        "z": "380302d7eb07d46d",
+        "group": "434a74d5a34e06a9",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Open date",
+        "format": "{{msg.open_date}}",
+        "layout": "row-spread",
+        "x": 990,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "c2a673fd44a4e46d",
+        "type": "ui_button",
+        "z": "380302d7eb07d46d",
+        "name": "NewestCardBtn",
+        "group": "020ec5b5af1e9526",
+        "order": 4,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Auto Detect",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "payment",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 120,
+        "y": 520,
+        "wires": [
+            [
+                "899bfa03461b9504",
+                "9270d6891b7b7fac"
+            ]
+        ]
+    },
+    {
+        "id": "899bfa03461b9504",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Request any newest scanning",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://127.0.0.1:8000/rfid-epayment-api/newest_scan_history/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 370,
+        "y": 520,
+        "wires": [
+            [
+                "54738b5f8d953ca9"
+            ]
+        ]
+    },
+    {
+        "id": "54738b5f8d953ca9",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Get rid",
+        "func": "msg.payload = msg.payload[\"api_response\"][0][\"rid\"];\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 590,
+        "y": 520,
+        "wires": [
+            [
+                "d915f677c9894c13"
+            ]
+        ]
+    },
+    {
+        "id": "c5546e0467c30ed3",
+        "type": "ui_text",
+        "z": "380302d7eb07d46d",
+        "group": "434a74d5a34e06a9",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "name": "",
+        "label": "Card ID",
+        "format": "{{msg.card_rid}}",
+        "layout": "row-spread",
+        "x": 980,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "cf85b458df628a1f",
+        "type": "ui_template",
+        "z": "380302d7eb07d46d",
+        "group": "b2f8843ab0f052e4",
+        "name": "TRN Table template",
+        "order": 1,
+        "width": 18,
+        "height": 8,
+        "format": "<style>\n    th, td {\n        text-align: center;\n    }\n</style>\n\n<table border=\"2\">\n    <thead>\n        <tr>\n            <th>Date</th>\n            <th>Flow</th>\n            <th>Value</th>\n            <th>Balance</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr ng-repeat=\"row in msg.trn_table_data\">\n            <td>{{ row[\"transaction_date\"] }}</td>\n            <td>{{ row[\"flow\"] }}</td>\n            <td>{{ row[\"value\"] }}</td>\n            <td>{{ row[\"balance_after_transaction\"] }}</td>\n        </tr>\n    </tbody>\n</table>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 1110,
+        "y": 640,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "470662c26095202c",
+        "type": "ui_template",
+        "z": "380302d7eb07d46d",
+        "group": "1724a0f38f10a298",
+        "name": "Card Table template",
+        "order": 2,
+        "width": 0,
+        "height": 0,
+        "format": "<style>\n    th, td {\n        text-align: center;\n    }\n</style>\n\n<script>\n    function copyToClipboard(btn) {\n        let clicked_rid = btn.id;\n        navigator.clipboard.writeText(clicked_rid);\n    }\n</script>\n\n<table border=\"2\">\n    <thead>\n        <tr>\n            <th></th>\n            <th>Card ID</th>\n            <th>Hash Key</th>\n            <th>Balance</th>\n            <th>State</th>\n            <th>Open Date</th>\n        </tr>\n    </thead>\n    <tbody>\n        <tr ng-repeat=\"row in msg.card_table_data\">\n            <td>\n                <button id={{row[\"rid\"]}} onclick=\"copyToClipboard(this)\">Copy</button>\n            </td>\n            <td>{{ row[\"rid\"] }}</td>\n            <td>{{ row[\"hash_key\"] }}</td>\n            <td>{{ row[\"balance\"] }}</td>\n            <td>{{ row[\"enable\"] }}</td>\n            <td>{{ row[\"reg_date\"] }}</td>\n        </tr>\n    </tbody>\n</table>",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "x": 780,
+        "y": 880,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2df66e892c01fd59",
+        "type": "ui_button",
+        "z": "380302d7eb07d46d",
+        "name": "RefreshCardsBtn",
+        "group": "1724a0f38f10a298",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "passthru": false,
+        "label": "Refresh",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "icon": "refresh",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "topic",
+        "topicType": "msg",
+        "x": 150,
+        "y": 880,
+        "wires": [
+            [
+                "003ca1672ea1216e"
+            ]
+        ]
+    },
+    {
+        "id": "003ca1672ea1216e",
+        "type": "http request",
+        "z": "380302d7eb07d46d",
+        "name": "Request all cards",
+        "method": "GET",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "http://127.0.0.1:8000/rfid-epayment-api/card/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "senderr": false,
+        "headers": [],
+        "x": 370,
+        "y": 880,
+        "wires": [
+            [
+                "e4e2dd5032365675"
+            ]
+        ]
+    },
+    {
+        "id": "e4e2dd5032365675",
+        "type": "function",
+        "z": "380302d7eb07d46d",
+        "name": "Parse data",
+        "func": "msg.payload = msg.payload[\"api_response\"];\nlet table_data = [];\nmsg.payload.forEach(function(e) {\n    let row = {};\n    row[\"rid\"] = e[\"rid\"];\n    row[\"hash_key\"] = e[\"hash_key\"];\n    row[\"balance\"] = e[\"balance\"];\n    row[\"enable\"] = (e[\"enable\"] === 1) ? \"啟用\" : \"禁用\";\n    row[\"reg_date\"] = e[\"reg_date\"];\n    table_data.push(row);\n});\nmsg.card_table_data = table_data;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 570,
+        "y": 880,
+        "wires": [
+            [
+                "470662c26095202c"
+            ]
+        ]
+    },
+    {
+        "id": "21d9091a6e3ba259",
+        "type": "ui_spacer",
+        "z": "380302d7eb07d46d",
+        "name": "spacer",
+        "group": "020ec5b5af1e9526",
+        "order": 2,
+        "width": 9,
+        "height": 1
+    },
+    {
+        "id": "020ec5b5af1e9526",
+        "type": "ui_group",
+        "name": "Options",
+        "tab": "0369c0b13ee092d5",
+        "order": 1,
+        "disp": true,
+        "width": 9,
+        "collapse": false
+    },
+    {
+        "id": "434a74d5a34e06a9",
+        "type": "ui_group",
+        "name": "Card Info",
+        "tab": "0369c0b13ee092d5",
+        "order": 2,
+        "disp": true,
+        "width": 9,
+        "collapse": false
+    },
+    {
+        "id": "b2f8843ab0f052e4",
+        "type": "ui_group",
+        "name": "Transaction Records",
+        "tab": "0369c0b13ee092d5",
+        "order": 3,
+        "disp": true,
+        "width": 18,
+        "collapse": false
+    },
+    {
+        "id": "1724a0f38f10a298",
+        "type": "ui_group",
+        "name": "Cards",
+        "tab": "f00611a57eafcbac",
+        "order": 1,
+        "disp": true,
+        "width": 18,
+        "collapse": false
+    },
+    {
+        "id": "0369c0b13ee092d5",
+        "type": "ui_tab",
+        "name": "RFID",
+        "icon": "dashboard",
+        "order": 1,
+        "disabled": false,
+        "hidden": false
+    },
+    {
+        "id": "f00611a57eafcbac",
+        "type": "ui_tab",
+        "name": "All Cards",
+        "icon": "dashboard",
+        "order": 2,
+        "disabled": false,
+        "hidden": false
+    }
+]
