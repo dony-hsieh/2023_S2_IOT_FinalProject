@@ -46,6 +46,7 @@ class MainApplicationWindow(QMainWindow):
         self.reconnect_serial()
 
         self.ui.trnValLineEdit.setValidator(QIntValidator(MIN_TRANSACTION_VALUE, MAX_TRANSACTION_VALUE))
+        self.ui.funcTabWidget.setCurrentIndex(0)
 
         self.ui.reconnSerialBtn.clicked.connect(self.reconnect_serial)
         self.ui.stdModeBtn.clicked.connect(lambda _: self.on_mode_switch(WorkMode.STD))
@@ -63,6 +64,7 @@ class MainApplicationWindow(QMainWindow):
         self.ui.setEnableFalseBtn.clicked.connect(lambda _: self.set_card_enable(False))
         self.ui.execCnlBtn.clicked.connect(self.execute_cancellation)
         self.ui.forceWriteRidBtn.clicked.connect(self.forced_writing_rid)
+        self.ui.forceWriteZeroValBtn.clicked.connect(lambda _: self.ui.forceWriteRidLineEdit.setText("00" * 16))
 
         self.rfid_curWorkMode = WorkMode.STD
         self.set_widgets_mode()
@@ -116,6 +118,7 @@ class MainApplicationWindow(QMainWindow):
         self.ui.execRegBtn.setEnabled(False)
         self.ui.forceWriteRidLineEdit.setEnabled(False)
         self.ui.forceWriteRidBtn.setEnabled(False)
+        self.ui.forceWriteZeroValBtn.setEnabled(False)
 
         self.ui.setEnableFalseBtn.setEnabled(False)
         self.ui.setEnableTrueBtn.setEnabled(False)
@@ -155,6 +158,7 @@ class MainApplicationWindow(QMainWindow):
             self.ui.execRegBtn.setEnabled(True)
             self.ui.forceWriteRidLineEdit.setEnabled(True)
             self.ui.forceWriteRidBtn.setEnabled(True)
+            self.ui.forceWriteZeroValBtn.setEnabled(True)
             self.ui.funcTabWidget.setCurrentIndex(1)
             return
 
@@ -291,6 +295,16 @@ class MainApplicationWindow(QMainWindow):
             )
             return
 
+        cont = QMessageBox.information(
+            self,
+            "註冊程序",
+            "確定要以以下資料註冊新卡片?\n" + f"rid={rid}\nuser_info={user_info}\nhash_key={hkey}",
+            QMessageBox.Cancel | QMessageBox.Ok,
+            QMessageBox.Cancel
+        )
+        if cont == QMessageBox.Cancel:
+            return
+
         # send to serial, then insert to db
         self.parse_data_writing_serial("0f", rid)
         # success = self.db.add_card(rid, user_info, hkey, 0, True, datetime.now())
@@ -344,7 +358,7 @@ class MainApplicationWindow(QMainWindow):
             )
             return
         confirm_to_cancel = QMessageBox.warning(
-            self, "註銷程序", f"確定要註銷卡片\nID=\"{read_rid}\"", QMessageBox.No | QMessageBox.Yes, QMessageBox.No
+            self, "註銷程序", f"確定要註銷卡片\nID={read_rid}", QMessageBox.No | QMessageBox.Yes, QMessageBox.No
         )
         if confirm_to_cancel == QMessageBox.Yes:
             # self.db.delete_card(read_rid)
