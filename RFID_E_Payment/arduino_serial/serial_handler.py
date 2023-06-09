@@ -1,7 +1,5 @@
-from PySide2.QtWidgets import QWidget
 from PySide2.QtCore import QThread, Signal
 import serial
-import time
 
 from RFID_E_Payment.definitions import SERIAL_PORT, SERIAL_BAUD, SERIAL_COMMUNICATION_PACK_SIZE
 
